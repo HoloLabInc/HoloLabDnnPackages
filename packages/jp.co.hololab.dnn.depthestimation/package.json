@@ -1,0 +1,24 @@
+{
+    "name": "jp.co.hololab.dnn.depthestimation",
+    "version": "1.0.0",
+    "displayName": "Depth Estimation",
+    "description": "Depth Estimation model with Unity Sentis.",
+    "keywords": [ "unity", "sentis", "depth estimation" ],
+    "unity": "2021.3",
+    "author": {
+        "name": "HoloLab Inc.",
+        "url": "https://hololab.co.jp"
+    },
+    "license": "MIT",
+    "dependencies": {
+        "com.unity.sentis": "1.3.0-pre.2",
+        "jp.co.hololab.dnn.base": "1.0.0"
+    },
+    "samples": [
+        {
+            "displayName": "Sample App",
+            "description": "Simple depth estimation app scene to learn how to use DepthEstimationModel class.",
+            "path": "Samples~/SampleApp"
+        }
+    ]
+}

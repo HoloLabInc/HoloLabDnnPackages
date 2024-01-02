@@ -1,0 +1,17 @@
+{
+    "name": "jp.co.hololab.dnn.depthestimation",
+    "rootNamespace": "HoloLab.DNN.DepthEstimation",
+    "references": [
+        "GUID:3983cb600bd448a41a089f5415d03f05",
+        "GUID:c98377141161c7746a178fb5cb1af075"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
