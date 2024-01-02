@@ -1,0 +1,16 @@
+{
+    "name": "jp.co.hololab.dnn.base",
+    "version": "1.0.0",
+    "displayName": "DNN Base Model",
+    "description": "DNN base model with Unity Sentis.",
+    "keywords": [ "unity", "sentis" ],
+    "unity": "2021.3",
+    "author": {
+        "name": "HoloLab Inc.",
+        "url": "https://hololab.co.jp"
+    },
+    "license": "MIT",
+    "dependencies": {
+        "com.unity.sentis": "1.3.0-pre.2"
+    }
+}
