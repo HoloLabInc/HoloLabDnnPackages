@@ -1,0 +1,24 @@
+{
+    "name": "jp.co.hololab.dnn.classification",
+    "version": "1.0.0",
+    "displayName": "Classification",
+    "description": "Classification model with Unity Sentis.",
+    "keywords": [ "unity", "sentis", "classification" ],
+    "unity": "2021.3",
+    "author": {
+        "name": "HoloLab Inc.",
+        "url": "https://hololab.co.jp"
+    },
+    "license": "MIT",
+    "dependencies": {
+        "com.unity.sentis": "1.3.0-pre.2",
+        "jp.co.hololab.dnn.base": "1.0.0"
+    },
+    "samples": [
+        {
+            "displayName": "Sample App",
+            "description": "Simple classification app scene to learn how to use ClassificationModel class.",
+            "path": "Samples~/SampleApp"
+        }
+    ]
+}
