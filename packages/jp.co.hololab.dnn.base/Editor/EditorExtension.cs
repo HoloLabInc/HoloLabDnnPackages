@@ -16,14 +16,15 @@ namespace HoloLab.DNN.Base
         [InitializeOnLoadMethod]
         public static void OnProjectLoadedInEditor()
         {
-            var shader = Shader.Find("BaseModel/PreProcess");
-
-            if (ExistsInAlwaysIncludedShaders(shader))
+            EditorApplication.delayCall += () =>
             {
-                return;
-            }
-
-            AddAlwaysIncludedShaders(shader);
+                var shader = Shader.Find("BaseModel/PreProcess");
+                if (ExistsInAlwaysIncludedShaders(shader))
+                {
+                    return;
+                }
+                AddAlwaysIncludedShaders(shader);
+            };
         }
 
         /// <summary>
