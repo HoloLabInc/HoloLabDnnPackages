@@ -31,7 +31,14 @@ namespace Sample
             labels = new List<string>(Regex.Split(names.text, "\r\n|\r|\n"));
 
             // Create Visualizer and Colors
-            font = Resources.GetBuiltinResource(typeof(Font), "LegacyRuntime.ttf") as Font;
+            try
+            {
+                font = Resources.GetBuiltinResource(typeof(Font), "Arial.ttf") as Font;
+            }
+            catch
+            {
+                font = Resources.GetBuiltinResource(typeof(Font), "LegacyRuntime.ttf") as Font;
+            }
             colors = HoloLab.DNN.ObjectDetection.Visualizer.GenerateRandomColors(labels.Count);
             color_offset = new Color(0.5f, 0.5f, 0.5f, 0.0f);
         }
