@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 using UnityEngine;
 using Unity.Sentis;
 using HoloLab.DNN.Base;
+using Unity.Sentis.Layers;
 
 namespace HoloLab.DNN.DepthEstimation
 {
@@ -91,15 +92,14 @@ namespace HoloLab.DNN.DepthEstimation
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private TensorFloat Normalize(TensorFloat tensor)
         {
-            var array = tensor.ToReadOnlyArray();
-            var depth_min = array.Min();
-            var depth_max = array.Max();
+            var min_tensor = ops.ReduceMin(tensor, null, false);
+            var max_tensor = ops.ReduceMax(tensor, null, false);
+            var normalized_tensor = ops.Div(ops.Sub(tensor, min_tensor), ops.Sub(max_tensor, min_tensor));
 
-            var apply_normalize = (depth_max - depth_min > Single.Epsilon);
-            var normalized_array = apply_normalize ? array.Select(depth => (depth - depth_min) / (depth_max - depth_min)).ToArray()
-                                                   : array;
+            min_tensor.Dispose();
+            max_tensor.Dispose();
 
-            return new TensorFloat(tensor.shape, normalized_array);
+            return normalized_tensor;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
