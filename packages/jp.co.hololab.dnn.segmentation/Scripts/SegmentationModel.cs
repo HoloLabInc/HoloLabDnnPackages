@@ -102,7 +102,7 @@ namespace HoloLab.DNN.Segmentation
                 for (var x = 0; x < width; x++)
                 {
                     var index = (byte)indices[inv_y * width + x];
-                    colors[y * width + x] = new Color32(index, 0, 0, 255);
+                    colors[y * width + x].r = index;
                 }
             });
 
