@@ -16,12 +16,13 @@ Distributed under the [MIT License](LICENSE).
 
 ## Which Models Are Supported
 
+> [!NOTE]  
+> ClassificationMode class supports general classification models with input shape is NCHW and output shape is 1 x num_classes.  
+
 The following models are expected to works.  
 Please export trained weights to ONNX format.  
 
 * ClassificationMode class : General classification models such as [MobileNet](https://pytorch.org/vision/main/models/mobilenetv3.html), [EfficientNet](https://pytorch.org/vision/main/models/efficientnet.html), and others.
-
-NOTE: ClassificationMode class supports general classification models with input shape is NCHW and output shape is 1 x num_classes.  
 
 ## How To Add Package
 
@@ -50,9 +51,11 @@ Please see [samples](../Samples~).
 
 ## Note
 
+> [!NOTE]  
+> This setting is automatically by editor extension when importing jp.co.hololab.dnn.base package.  
+
 This package depend on BaseModel/PreProcess shader of jp.co.hololab.dnn.base.  
 Please add BaseModel/PreProcess shader to Always Included Shaders before building your application.  
-This setting is automatically by editor extension when importing jp.co.hololab.dnn.base package.  
 
 1. [Edit]>[Project Settings]
 2. [Graphics]>[Always Included Shaders]

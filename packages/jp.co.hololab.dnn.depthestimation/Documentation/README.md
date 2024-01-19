@@ -48,9 +48,11 @@ Please see [samples](../Samples~).
 
 ## How To Build
 
+> [!NOTE]  
+> This setting is automatically by editor extension when importing jp.co.hololab.dnn.base package.  
+
 This package depend on BaseModel/PreProcess shader of jp.co.hololab.dnn.base.  
 Please add BaseModel/PreProcess shader to Always Included Shaders before building your application.  
-This setting is automatically by editor extension when importing jp.co.hololab.dnn.base package.  
 
 1. [Edit]>[Project Settings]
 2. [Graphics]>[Always Included Shaders]
