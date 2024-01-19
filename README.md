@@ -7,10 +7,18 @@ This packages is implemented based on Unity Sentis.
 
 ## Packages
 
+The HoloLab DNN Packages consists of some packages.  
+You can use this library by combination of one base package and some task packages.  
+Please see README of each package about how to use package.  
+
+### Base Package
+
 * [jp.co.hololab.dnn.base](packages/jp.co.hololab.dnn.base/Documentation/README.md)  
   This package is provides base class for dnn inference.  
   This package is used as internal dependency for other packages.  
   You can create inference classes for your models using this base class too.  
+
+### Task Packages
 
 * [jp.co.hololab.dnn.classification](packages/jp.co.hololab.dnn.classification/Documentation/README.md)  
   This package is provides classification class using general classification models.  
@@ -39,5 +47,5 @@ These packages works on Unity 2021.3 LTS or later.
 ## License
 
 Copyright &copy; 2024 [HoloLab Inc.](https://hololab.co.jp/)  
-Distributed under the MIT License.  
-
+All packages are distributed under the MIT license for now.  
+Please see the license for each packages.  
