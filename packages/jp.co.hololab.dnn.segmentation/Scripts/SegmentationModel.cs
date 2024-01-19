@@ -115,10 +115,10 @@ namespace HoloLab.DNN.Segmentation
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private Texture2D Resize(Texture2D texture, int width, int height, FilterMode filter_mode = FilterMode.Point)
         {
-            texture.filterMode = filter_mode;
-
             var render_texture = RenderTexture.GetTemporary(width, height, 0, RenderTextureFormat.R8);
             render_texture.filterMode = filter_mode;
+
+            texture.filterMode = filter_mode;
 
             RenderTexture.active = render_texture;
             Graphics.Blit(texture, render_texture);

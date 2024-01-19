@@ -118,16 +118,21 @@ namespace HoloLab.DNN.DepthEstimation
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private Texture2D Resize(RenderTexture render_texture, int width, int height)
+        private Texture2D Resize(RenderTexture texture, int width, int height)
         {
-            var resized_texture = RenderTexture.GetTemporary(width, height);
-            Graphics.Blit(render_texture, resized_texture);
+            var render_texture = RenderTexture.GetTemporary(width, height, 0, RenderTextureFormat.ARGB32);
 
-            var result = new Texture2D(resized_texture.width, resized_texture.height, TextureFormat.RGBA32, false);
-            result.ReadPixels(new Rect(0, 0, resized_texture.width, resized_texture.height), 0, 0);
-            result.Apply();
+            RenderTexture.active = render_texture;
+            Graphics.Blit(texture, render_texture);
 
-            return result;
+            var resized_texture = new Texture2D(render_texture.width, render_texture.height, TextureFormat.RGBA32, false);
+            resized_texture.ReadPixels(new Rect(0, 0, resized_texture.width, resized_texture.height), 0, 0);
+            resized_texture.Apply();
+
+            RenderTexture.active = null;
+            RenderTexture.ReleaseTemporary(render_texture);
+
+            return resized_texture;
         }
     }
 }
