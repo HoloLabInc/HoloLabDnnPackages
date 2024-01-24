@@ -31,7 +31,7 @@ Please see README of each package about how to use package.
   ![objectdetection](images/objectdetection.png)  
 
 * [jp.co.hololab.dnn.depthestimation](packages/jp.co.hololab.dnn.depthestimation/Documentation/README.md)  
-  This package is provides depth estimation class using MiDaS model.  
+  This package is provides depth estimation class using general relative depth estimation models.  
   This package contains simple inference sample app to learn how to use depth estimation class.  
   ![depthestimation](images/depthestimation.png)  
 

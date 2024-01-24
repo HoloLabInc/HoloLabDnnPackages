@@ -2,7 +2,7 @@
 
 ## About
 
-This package is provides depth estimation using MiDaS model.  
+This package is provides depth estimation using relative depth estimation models.  
 This depth estimation is implemented based on Sentis.  
 
 ## Environment
@@ -16,10 +16,13 @@ Distributed under the [MIT License](LICENSE).
 
 ## Which Models Are Supported
 
+> [!NOTE]  
+> DepthEstimationModel class supports general relative depth estimation models with input shape is NCHW and output shape is 1 x 1 x height x width.  
+
 The following models are expected to works.  
 Please export trained weights to ONNX format.  
 
-* DepthEstimationModel_MiDaS class : [MiDaS](https://github.com/isl-org/MiDaS)
+* DepthEstimationModel class : [MiDaS](https://github.com/isl-org/MiDaS), [Depth Anything](https://github.com/LiheYoung/Depth-Anything), and others.
 
 ## How To Add Package
 
