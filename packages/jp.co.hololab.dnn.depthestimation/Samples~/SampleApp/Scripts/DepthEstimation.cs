@@ -13,12 +13,12 @@ namespace Sample
         [SerializeField, Tooltip("Mean")] private Vector3 mean = new Vector3(0.5f, 0.5f, 0.5f);
         [SerializeField, Tooltip("Std")] private Vector3 std = new Vector3(0.5f, 0.5f, 0.5f);
 
-        private HoloLab.DNN.DepthEstimation.DepthEstimationModel_MiDaS model;
+        private HoloLab.DNN.DepthEstimation.DepthEstimationModel model;
 
         private void Start()
         {
             // Create Depth Estimation Model
-            model = new HoloLab.DNN.DepthEstimation.DepthEstimationModel_MiDaS(weights);
+            model = new HoloLab.DNN.DepthEstimation.DepthEstimationModel(weights);
             model.SetInputMean(mean);
             model.SetInputStd(std);
         }
@@ -32,8 +32,14 @@ namespace Sample
                 return;
             }
 
+            var sw = new System.Diagnostics.Stopwatch();
+            sw.Start();
+
             // Estimate Depth
             var depth_texture = model.Estimate(input_texture);
+
+            sw.Stop();
+            Debug.Log(sw.ElapsedMilliseconds);
 
             // Draw Depth on Unity UI
             if (output_image.texture == null)

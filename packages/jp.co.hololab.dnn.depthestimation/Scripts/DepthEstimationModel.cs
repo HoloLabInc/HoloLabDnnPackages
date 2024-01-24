@@ -1,31 +1,25 @@
 using System;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 using Unity.Sentis;
 using HoloLab.DNN.Base;
-using Unity.Sentis.Layers;
 
 namespace HoloLab.DNN.DepthEstimation
 {
     /// <summary>
-    /// depth estimation model class for midas
+    /// depth estimation model class for general relative depth estimation models
+    /// (this class supports models with output shape is 1 x 1 x height x width)
     /// </summary>
-    public class DepthEstimationModel_MiDaS : BaseModel, IDisposable
+    public class DepthEstimationModel : BaseModel, IDisposable
     {
         /// <summary>
         /// create depth estimation model for midas from onnx file
         /// </summary>
         /// <param name="file_path">model file path</param>
         /// <param name="backend_type">backend type for inference engine</param>
-        /// <remarks>
-        /// midas v2.1 model's requires different normalize value (mean/std) than default. please set manually.
-        /// https://github.com/isl-org/MiDaS/blob/v3_1/midas/model_loader.py#L49-L195
-        /// </remarks>
-        public DepthEstimationModel_MiDaS(string file_path, BackendType backend_type = BackendType.GPUCompute)
+        public DepthEstimationModel(string file_path, BackendType backend_type = BackendType.GPUCompute)
             : base(file_path, backend_type)
         {
-            Initialize();
         }
 
         /// <summary>
@@ -33,14 +27,9 @@ namespace HoloLab.DNN.DepthEstimation
         /// </summary>
         /// <param name="model_asset">model asset</param>
         /// <param name="backend_type">backend type for inference engine</param>
-        /// <remarks>
-        /// midas v2.1 model's requires different normalize value (mean/std) than default. please set manually.
-        /// https://github.com/isl-org/MiDaS/blob/v3_1/midas/model_loader.py#L49-L195
-        /// </remarks>
-        public DepthEstimationModel_MiDaS(ModelAsset model_asset, BackendType backend_type = BackendType.GPUCompute)
+        public DepthEstimationModel(ModelAsset model_asset, BackendType backend_type = BackendType.GPUCompute)
             : base(model_asset, backend_type)
         {
-            Initialize();
         }
 
         /// <summary>
@@ -55,7 +44,7 @@ namespace HoloLab.DNN.DepthEstimation
         /// estimate depth
         /// </summary>
         /// <param name="image">input image</param>
-        /// <returns>estimated depth image</returns>
+        /// <returns>estimated depth image that min-max normalized</returns>
         public Texture2D Estimate(Texture2D image)
         {
             var output_tensors = Predict(image);
@@ -69,12 +58,6 @@ namespace HoloLab.DNN.DepthEstimation
             output_tensors.AllDispose();
 
             return depth_texture;
-        }
-
-        private void Initialize()
-        {
-            SetInputMean(new Vector3(0.5f, 0.5f, 0.5f));
-            SetInputStd(new Vector3(0.5f, 0.5f, 0.5f));
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
