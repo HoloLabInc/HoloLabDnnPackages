@@ -2,12 +2,12 @@
 
 ## About
 
-This package is provides segmentation using general segmentation models.  
+This package is providing segmentation using general segmentation models.  
 This object detection is implemented based on Sentis.  
 
 ## Environment
 
-These packages works on Unity 2021.3 LTS or later.  
+These packages work on Unity 2021.3 LTS or later.  
 
 ## License
 
@@ -54,7 +54,7 @@ Please see [samples](../Samples~).
 > [!NOTE]  
 > This setting is automatically by editor extension when importing jp.co.hololab.dnn.base package.  
 
-This package depend on BaseModel/PreProcess shader of jp.co.hololab.dnn.base.  
+This package depends on BaseModel/PreProcess shader of jp.co.hololab.dnn.base.  
 Please add BaseModel/PreProcess shader to Always Included Shaders before building your application.  
 
 1. [Edit]>[Project Settings]

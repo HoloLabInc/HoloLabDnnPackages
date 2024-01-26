@@ -2,12 +2,12 @@
 
 ## About
 
-This package is provides base model for dnn inference.  
+This package is providing base model for dnn inference.  
 This base model is implemented based on Sentis.  
 
 ## Environment
 
-These packages works on Unity 2021.3 LTS or later.  
+These packages work on Unity 2021.3 LTS or later.  
 
 ## License
 
@@ -46,7 +46,7 @@ Please see other packages that depend on this package.
 > [!NOTE]  
 > This setting is automatically by editor extension when importing this package.  
 
-This package depend on BaseModel/PreProcess shader of jp.co.hololab.dnn.base.  
+This package depends on BaseModel/PreProcess shader of jp.co.hololab.dnn.base.  
 Please add BaseModel/PreProcess shader to Always Included Shaders before building your application.  
 
 1. [Edit]>[Project Settings]
