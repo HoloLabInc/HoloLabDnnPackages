@@ -16,6 +16,7 @@ namespace HoloLab.DNN.ObjectDetection
         private List<int> strides = new List<int> { 8, 16, 32, 64 };
         private List<Vector2Int> grids;
         private List<int> expanded_strides;
+        private TensorShape input_shape;
 
         /// <summary>
         /// create object detection model for yolox from onnx file
@@ -76,7 +77,10 @@ namespace HoloLab.DNN.ObjectDetection
         {
             SetInputMax(255.0f);
 
-            (var input_width, var input_height, var input_channels) = GetInputShape();
+            input_shape = GetInputShapes().First().Value;
+            var input_width = input_shape[3];
+            var input_height = input_shape[2];
+
             var wsizes = strides.Select(stride => input_width / stride).ToList();
             var hsizes = strides.Select(stride => input_height / stride).ToList();
             (grids, expanded_strides) = CreateGridsAndExpandedStrides(wsizes, hsizes);
@@ -117,7 +121,8 @@ namespace HoloLab.DNN.ObjectDetection
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private float GetResizeRatio(Texture2D image)
         {
-            (var input_width, var input_height, _) = GetInputShape();
+            var input_width = input_shape[3];
+            var input_height = input_shape[2];
             return Math.Min((float)input_width / (float)image.width, (float)input_height / (float)image.height);
         }
 

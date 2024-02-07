@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using UnityEngine;
@@ -74,16 +75,20 @@ namespace HoloLab.DNN.Base
         }
 
         /// <summary>
-        /// get input layer shape
+        /// get input layers shape
         /// </summary>
-        /// <returns>input layer shape (width, height, and channels)</returns>
+        /// <returns>the input layers name with shape</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public (int width, int height, int channels) GetInputShape()
+        public Dictionary<string, TensorShape> GetInputShapes()
         {
-            var input_width = runtime_model.inputs[0].shape[3].value;
-            var input_height = runtime_model.inputs[0].shape[2].value;
-            var input_channels = runtime_model.inputs[0].shape[1].value;
-            return (input_width, input_height, input_channels);
+            var input_shapes = new Dictionary<string, TensorShape>(runtime_model.inputs.Count);
+            runtime_model.inputs.ForEach(input =>
+            {
+                var shape = input.shape.ToTensorShape();
+                input_shapes[input.name] = shape;
+            });
+
+            return input_shapes;
         }
 
         /// <summary>
@@ -93,11 +98,11 @@ namespace HoloLab.DNN.Base
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Dictionary<string, TensorShape> GetOutputShapes()
         {
+            var input_shapes = GetInputShapes();
             var input_tensors = new Dictionary<string, Tensor>(runtime_model.inputs.Count);
             runtime_model.inputs.ForEach(input =>
             {
-                var input_shape = input.shape.ToTensorShape();
-                var input_tensor = TensorFloat.Zeros(input_shape);
+                var input_tensor = TensorFloat.Zeros(input.shape.ToTensorShape());
                 input_tensors[input.name] = input_tensor;
             });
 
@@ -187,9 +192,9 @@ namespace HoloLab.DNN.Base
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Dictionary<string, Tensor> Predict(Texture2D image)
         {
-            (var input_width, var input_height, var input_channels) = GetInputShape();
             var input_texture = PreProcess(image);
-            var input_tensor = TextureConverter.ToTensor(input_texture, input_width, input_height, input_channels);
+            var input_shape = GetInputShapes().First().Value;
+            var input_tensor = TextureConverter.ToTensor(input_texture, input_shape[3], input_shape[2], input_shape[1]);
 
             worker.Execute(input_tensor);
 
