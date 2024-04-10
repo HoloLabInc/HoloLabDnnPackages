@@ -370,6 +370,8 @@ MonoBehaviour:
   names: {fileID: 4900000, guid: a5e3e95e328024c409dfefc1b219137a, type: 3}
   text: {fileID: 1205570316}
   apply_softmax: 1
+  mean: {x: 0.485, y: 0.456, z: 0.406}
+  std: {x: 0.229, y: 0.224, z: 0.225}
 --- !u!1 &1085688158
 GameObject:
   m_ObjectHideFlags: 0

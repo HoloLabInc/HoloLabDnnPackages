@@ -64,7 +64,6 @@ namespace Sample
 
             HoloLab.DNN.ObjectDetection.Visualizer.ClearLabels(input_image);
             objects.ForEach(o => HoloLab.DNN.ObjectDetection.Visualizer.DrawLabel(input_image, o.rect, colors[o.class_id] - color_offset, $"{labels[o.class_id]} ({o.score:F2})", font));
-
         }
         private void OnDestroy()
         {

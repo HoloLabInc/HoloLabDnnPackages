@@ -32,14 +32,8 @@ namespace Sample
                 return;
             }
 
-            var sw = new System.Diagnostics.Stopwatch();
-            sw.Start();
-
             // Estimate Depth
             var depth_texture = model.Estimate(input_texture);
-
-            sw.Stop();
-            Debug.Log(sw.ElapsedMilliseconds);
 
             // Draw Depth on Unity UI
             if (output_image.texture == null)

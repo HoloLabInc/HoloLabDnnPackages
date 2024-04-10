@@ -15,7 +15,7 @@ namespace HoloLab.DNN.Base
     {
         protected Model runtime_model = null;
         protected IWorker worker = null;
-        protected Ops ops = null;
+        protected IBackend backend = null;
         private Material pre_process = null;
         private RenderTexture render_texture = null;
 
@@ -26,8 +26,7 @@ namespace HoloLab.DNN.Base
         /// <param name="backend_type">backend type for inference engine</param>
         public BaseModel(string file_path, BackendType backend_type = BackendType.GPUCompute)
         {
-            var is_optimize = true;
-            var converter = new ONNXModelConverter(is_optimize, file_path);
+            var converter = new ONNXModelConverter(file_path);
             runtime_model = converter.Convert();
             Initialize(backend_type);
         }
@@ -51,8 +50,8 @@ namespace HoloLab.DNN.Base
             worker?.Dispose();
             worker = null;
 
-            ops?.Dispose();
-            ops = null;
+            backend?.Dispose();
+            backend = null;
 
             if (render_texture != null)
             {
@@ -64,7 +63,7 @@ namespace HoloLab.DNN.Base
         private void Initialize(BackendType backend_type)
         {
             worker = WorkerFactory.CreateWorker(backend_type, runtime_model);
-            ops = WorkerFactory.CreateOps(backend_type, null);
+            backend = WorkerFactory.CreateBackend(backend_type);
             var input_width = runtime_model.inputs[0].shape[3].value;
             var input_height = runtime_model.inputs[0].shape[2].value;
             render_texture = RenderTexture.GetTemporary(input_width, input_height, 0, RenderTextureFormat.ARGBHalf);
@@ -102,7 +101,7 @@ namespace HoloLab.DNN.Base
             var input_tensors = new Dictionary<string, Tensor>(runtime_model.inputs.Count);
             runtime_model.inputs.ForEach(input =>
             {
-                var input_tensor = TensorFloat.Zeros(input.shape.ToTensorShape());
+                var input_tensor = TensorFloat.AllocZeros(input.shape.ToTensorShape());
                 input_tensors[input.name] = input_tensor;
             });
 
@@ -110,7 +109,7 @@ namespace HoloLab.DNN.Base
 
             var output_shapes = new Dictionary<string, TensorShape>(runtime_model.outputs.Count);
             runtime_model.outputs.ForEach(output =>
-                output_shapes[output] = worker.PeekOutput(output).shape
+                output_shapes[output.name] = worker.PeekOutput(output.name).shape
             );
 
             return output_shapes;
@@ -125,8 +124,8 @@ namespace HoloLab.DNN.Base
             worker?.Dispose();
             worker = WorkerFactory.CreateWorker(backend_type, runtime_model);
 
-            ops?.Dispose();
-            ops = WorkerFactory.CreateOps(backend_type, null);
+            backend?.Dispose();
+            backend = WorkerFactory.CreateBackend(backend_type);
         }
 
         /// <summary>
@@ -200,9 +199,8 @@ namespace HoloLab.DNN.Base
 
             var output_tensors = new Dictionary<string, Tensor>(runtime_model.outputs.Count);
             runtime_model.outputs.ForEach(output => {
-                var output_tensor = worker.PeekOutput(output);
-                output_tensor.TakeOwnership();
-                output_tensors[output] = output_tensor;
+                var output_tensor = worker.PeekOutput(output.name);
+                output_tensors[output.name] = output_tensor;
             });
 
             input_tensor.Dispose();

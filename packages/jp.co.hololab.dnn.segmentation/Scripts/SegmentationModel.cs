@@ -51,18 +51,20 @@ namespace HoloLab.DNN.Segmentation
         public Texture2D Segment(Texture2D image)
         {
             var output_tensors = Predict(image);
-            var output_name = runtime_model.outputs[0];
+            var output_name = runtime_model.outputs[0].name;
             var output_tensor = output_tensors[output_name] as TensorFloat;
-            var indices = ops.ArgMax(output_tensor, 1, false);
 
-            output_tensor.MakeReadable();
-            indices.MakeReadable();
+            var indices_shape = new TensorShape(1, output_tensor.shape[2], output_tensor.shape[3]);
+            var indices = TensorInt.AllocNoData(indices_shape);
+            backend.ArgMax(output_tensor, indices, 1, false, false);
+
+            output_tensor.CompleteOperationsAndDownload();
+            indices.CompleteOperationsAndDownload();
 
             var indices_texture = ToTexture(indices);
             var resized_texture = Resize(indices_texture, image.width, image.height);
 
             output_tensors.AllDispose();
-            indices.Dispose();
             MonoBehaviour.Destroy(indices_texture);
 
             return resized_texture;
@@ -75,7 +77,7 @@ namespace HoloLab.DNN.Segmentation
         public int GetNumClasses()
         {
             var output_shapes = GetOutputShapes();
-            var output_name = runtime_model.outputs[0];
+            var output_name = runtime_model.outputs[0].name;
             var num_classes = output_shapes[output_name][1];
             return num_classes;
         }

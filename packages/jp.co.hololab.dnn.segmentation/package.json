@@ -1,6 +1,6 @@
 {
     "name": "jp.co.hololab.dnn.segmentation",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "displayName": "Segmentation",
     "description": "Segmentation model with Unity Sentis.",
     "keywords": [ "unity", "sentis", "segmentation" ],
@@ -11,8 +11,8 @@
     },
     "license": "MIT",
     "dependencies": {
-        "com.unity.sentis": "1.3.0-pre.3",
-        "jp.co.hololab.dnn.base": "1.0.0"
+        "com.unity.sentis": "1.4.0-pre.2",
+        "jp.co.hololab.dnn.base": "1.0.1"
     },
     "samples": [
         {

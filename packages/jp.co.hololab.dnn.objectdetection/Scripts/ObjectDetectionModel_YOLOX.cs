@@ -61,7 +61,7 @@ namespace HoloLab.DNN.ObjectDetection
             var resize_ratio = GetResizeRatio(image);
 
             var output_tensors = Predict(input_texture);
-            var output_name = runtime_model.outputs[0];
+            var output_name = runtime_model.outputs[0].name;
             var output_tensor = output_tensors[output_name] as TensorFloat;
 
             var objects = PostProcess(output_tensor, resize_ratio, score_threshold);
@@ -129,7 +129,7 @@ namespace HoloLab.DNN.ObjectDetection
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private List<HoloLab.DNN.ObjectDetection.Object> PostProcess(TensorFloat output_tensor, float resize_ratio, float score_threshold = 0.0f)
         {
-            output_tensor.MakeReadable();
+            output_tensor.CompleteOperationsAndDownload();
             var output_span = output_tensor.ToReadOnlySpan();
 
             var objects = new List<HoloLab.DNN.ObjectDetection.Object>();

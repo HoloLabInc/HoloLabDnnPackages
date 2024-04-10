@@ -1,6 +1,6 @@
 {
     "name": "jp.co.hololab.dnn.base",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "displayName": "DNN Base Model",
     "description": "DNN base model with Unity Sentis.",
     "keywords": [ "unity", "sentis" ],
@@ -11,6 +11,6 @@
     },
     "license": "MIT",
     "dependencies": {
-        "com.unity.sentis": "1.3.0-pre.3"
+        "com.unity.sentis": "1.4.0-pre.2"
     }
 }

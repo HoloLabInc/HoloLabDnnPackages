@@ -48,10 +48,10 @@ namespace HoloLab.DNN.DepthEstimation
         public Texture2D Estimate(Texture2D image)
         {
             var output_tensors = Predict(image);
-            var output_name = runtime_model.outputs.Count == 1 ? runtime_model.outputs[0] : "output"; // TODO : fixed output layer name, because only dpt_levit_224_224x224 model have 2 outputs. (maybe bug)
+            var output_name = runtime_model.outputs.Count == 1 ? runtime_model.outputs[0].name : "output"; // TODO : fixed output layer name, because only dpt_levit_224_224x224 model have 2 outputs. (maybe bug)
             var output_tensor = output_tensors[output_name] as TensorFloat;
 
-            output_tensor.MakeReadable();
+            output_tensor.CompleteOperationsAndDownload();
 
             var depth_texture = PostProcess(output_tensor, image.width, image.height);
 
@@ -67,20 +67,23 @@ namespace HoloLab.DNN.DepthEstimation
             var render_texture = ToRenderTexture(normalized_tensor);
             var depth_texture = Resize(render_texture, input_width, input_height);
 
-            normalized_tensor.Dispose();
-
             return depth_texture;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private TensorFloat Normalize(TensorFloat tensor)
         {
-            var min_tensor = ops.ReduceMin(tensor, null, false);
-            var max_tensor = ops.ReduceMax(tensor, null, false);
-            var normalized_tensor = ops.Div(ops.Sub(tensor, min_tensor), ops.Sub(max_tensor, min_tensor));
+            var min_tensor = TensorFloat.AllocNoData(new TensorShape(1));
+            backend.ReduceMin(tensor, min_tensor, null, false);
+            var max_tensor = TensorFloat.AllocNoData(new TensorShape(1));
+            backend.ReduceMax(tensor, max_tensor, null, false);
 
-            min_tensor.Dispose();
-            max_tensor.Dispose();
+            var numerator_tensor = TensorFloat.AllocNoData(tensor.shape);
+            var denominator_tensor = TensorFloat.AllocNoData(tensor.shape);
+            var normalized_tensor = TensorFloat.AllocNoData(tensor.shape);
+            backend.Sub(tensor, min_tensor, numerator_tensor);
+            backend.Sub(max_tensor, min_tensor, denominator_tensor);
+            backend.Div(numerator_tensor, denominator_tensor, normalized_tensor);
 
             return normalized_tensor;
         }
@@ -91,7 +94,7 @@ namespace HoloLab.DNN.DepthEstimation
             if (tensor.shape.rank != 4)
             {
                 var tensor_shape = tensor.shape.Unsqueeze(0);
-                tensor = tensor.ShallowReshape(tensor_shape) as TensorFloat;
+                tensor.Reshape(tensor_shape);
             }
 
             var width = tensor.shape[2];
