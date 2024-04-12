@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 using UnityEngine;
 using Unity.Sentis;
 using Unity.Sentis.ONNX;
+using Unity.Sentis.Quantization;
 
 namespace HoloLab.DNN.Base
 {
@@ -24,11 +25,12 @@ namespace HoloLab.DNN.Base
         /// </summary>
         /// <param name="file_path">model file path</param>
         /// <param name="backend_type">backend type for inference engine</param>
-        public BaseModel(string file_path, BackendType backend_type = BackendType.GPUCompute)
+        /// <param name="apply_quantize">apply float16 quantize</param>
+        public BaseModel(string file_path, BackendType backend_type = BackendType.GPUCompute, bool apply_quantize = false)
         {
             var converter = new ONNXModelConverter(file_path);
             runtime_model = converter.Convert();
-            Initialize(backend_type);
+            Initialize(backend_type, apply_quantize);
         }
 
         /// <summary>
@@ -36,10 +38,11 @@ namespace HoloLab.DNN.Base
         /// </summary>
         /// <param name="model_asset">model asset</param>
         /// <param name="backend_type">backend type for inference engine</param>
-        public BaseModel(ModelAsset model_asset, BackendType backend_type = BackendType.GPUCompute)
+        /// <param name="apply_quantize">apply float16 quantize</param>
+        public BaseModel(ModelAsset model_asset, BackendType backend_type = BackendType.GPUCompute, bool apply_quantize = true)
         {
             runtime_model = ModelLoader.Load(model_asset);
-            Initialize(backend_type);
+            Initialize(backend_type, apply_quantize);
         }
 
         /// <summary>
@@ -60,8 +63,13 @@ namespace HoloLab.DNN.Base
             }
         }
 
-        private void Initialize(BackendType backend_type)
+        private void Initialize(BackendType backend_type, bool apply_quantize)
         {
+            if (apply_quantize)
+            {
+                var quantize_type = QuantizationType.Float16;
+                ModelQuantizer.QuantizeWeights(quantize_type, ref runtime_model);
+            }
             worker = WorkerFactory.CreateWorker(backend_type, runtime_model);
             backend = WorkerFactory.CreateBackend(backend_type);
             var input_width = runtime_model.inputs[0].shape[3].value;

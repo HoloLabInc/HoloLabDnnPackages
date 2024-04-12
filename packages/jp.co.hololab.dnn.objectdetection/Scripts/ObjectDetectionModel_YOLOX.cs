@@ -23,8 +23,9 @@ namespace HoloLab.DNN.ObjectDetection
         /// </summary>
         /// <param name="file_path">model file path</param>
         /// <param name="backend_type">backend type for inference engine</param>
-        public ObjectDetectionModel_YOLOX(string file_path, BackendType backend_type = BackendType.GPUCompute)
-            : base(file_path, backend_type)
+        /// <param name="apply_quantize">apply float16 quantize</param>
+        public ObjectDetectionModel_YOLOX(string file_path, BackendType backend_type = BackendType.GPUCompute, bool apply_quantize = true)
+            : base(file_path, backend_type, apply_quantize)
         {
             Initialize();
         }
@@ -34,8 +35,9 @@ namespace HoloLab.DNN.ObjectDetection
         /// </summary>
         /// <param name="model_asset">model asset</param>
         /// <param name="backend_type">backend type for inference engine</param>
-        public ObjectDetectionModel_YOLOX(ModelAsset model_asset, BackendType backend_type = BackendType.GPUCompute)
-            : base(model_asset, backend_type)
+        /// <param name="apply_quantize">apply float16 quantize</param>
+        public ObjectDetectionModel_YOLOX(ModelAsset model_asset, BackendType backend_type = BackendType.GPUCompute, bool apply_quantize = true)
+            : base(model_asset, backend_type, apply_quantize)
         {
             Initialize();
         }
