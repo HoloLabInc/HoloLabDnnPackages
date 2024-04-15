@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using UnityEngine;
@@ -17,8 +18,11 @@ namespace HoloLab.DNN.Base
         protected Model runtime_model = null;
         protected IWorker worker = null;
         protected IBackend backend = null;
+        protected IEnumerator schedule = null;
         private Material pre_process = null;
         private RenderTexture render_texture = null;
+        private bool is_predicting = false;
+        private int layers_per_frame = 5;
 
         /// <summary>
         /// create base model from onnx file
@@ -192,6 +196,19 @@ namespace HoloLab.DNN.Base
         }
 
         /// <summary>
+        /// set number of layers to process per frame
+        /// </summary>
+        /// <param name="layers_per_frame">number of layers per frame (-1 is process all layers per frame)</param>
+        public void SetLayersPerFrame(int layers_per_frame)
+        {
+            this.layers_per_frame = layers_per_frame;
+            if (this.layers_per_frame < 0)
+            {
+                this.layers_per_frame = runtime_model.layers.Count;
+            }
+        }
+
+        /// <summary>
         /// run predict and get output tensors
         /// </summary>
         /// <param name="image">input image</param>
@@ -215,6 +232,48 @@ namespace HoloLab.DNN.Base
             MonoBehaviour.Destroy(input_texture);
 
             return output_tensors;
+        }
+
+        /// <summary>
+        /// run split predict over multiple frames and get output tensors
+        /// </summary>
+        /// <param name="image">input image</param>
+        /// <param name="return_callback">return callback</param>
+        /// <returns>callback function to returns output tensors</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public IEnumerator Predict(Texture2D image, Action<Dictionary<string, Tensor>> return_callback)
+        {
+            var input_texture = PreProcess(image);
+            var input_shape = GetInputShapes().First().Value;
+            var input_tensor = TextureConverter.ToTensor(input_texture, input_shape[3], input_shape[2], input_shape[1]);
+
+            if (!is_predicting)
+            {
+                schedule = worker.ExecuteLayerByLayer(input_tensor);
+                is_predicting = true;
+            }
+
+            var layers = 0;
+            while (schedule.MoveNext())
+            {
+                if ((++layers % layers_per_frame) == 0)
+                {
+                    yield return null;
+                }
+            }
+
+            var output_tensors = new Dictionary<string, Tensor>(runtime_model.outputs.Count);
+            runtime_model.outputs.ForEach(output => {
+                var output_tensor = worker.PeekOutput(output.name);
+                output_tensors[output.name] = output_tensor;
+            });
+
+            input_tensor.Dispose();
+            MonoBehaviour.Destroy(input_texture);
+
+            is_predicting = false;
+
+            return_callback(output_tensors);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -1,4 +1,6 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 using Unity.Sentis;
@@ -21,6 +23,7 @@ namespace HoloLab.DNN.DepthEstimation
         public DepthEstimationModel(string file_path, BackendType backend_type = BackendType.GPUCompute, bool apply_quantize = true)
             : base(file_path, backend_type, apply_quantize)
         {
+            Initialize();
         }
 
         /// <summary>
@@ -32,6 +35,7 @@ namespace HoloLab.DNN.DepthEstimation
         public DepthEstimationModel(ModelAsset model_asset, BackendType backend_type = BackendType.GPUCompute, bool apply_quantize = true)
             : base(model_asset, backend_type, apply_quantize)
         {
+            Initialize();
         }
 
         /// <summary>
@@ -60,6 +64,33 @@ namespace HoloLab.DNN.DepthEstimation
             output_tensors.AllDispose();
 
             return depth_texture;
+        }
+
+        /// <summary>
+        /// estimate depth with split predict over multiple frames
+        /// </summary>
+        /// <param name="image">input image</param>
+        /// <param name="return_callback">return callback</param>
+        /// <returns>callback function to returns estimated depth image that min-max normalized</returns>
+        public IEnumerator Estimate(Texture2D image, Action<Texture2D> return_callback)
+        {
+            var output_tensors = new Dictionary<string, Tensor>();
+            yield return CoroutineHandler.StartStaticCoroutine(Predict(image, (outputs) => output_tensors = outputs));
+            var output_name = runtime_model.outputs.Count == 1 ? runtime_model.outputs[0].name : "output"; // TODO : fixed output layer name, because only dpt_levit_224_224x224 model have 2 outputs. (maybe bug)
+            var output_tensor = output_tensors[output_name] as TensorFloat;
+
+            output_tensor.CompleteOperationsAndDownload();
+
+            var depth_texture = PostProcess(output_tensor, image.width, image.height);
+
+            output_tensors.AllDispose();
+
+            return_callback(depth_texture);
+        }
+
+        private void Initialize()
+        {
+            SetLayersPerFrame(runtime_model.layers.Count / 5); // TODO : automatic adjust number of layers per frame
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -1,4 +1,6 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Runtime.CompilerServices;
 using UnityEngine;
@@ -73,6 +75,35 @@ namespace HoloLab.DNN.Segmentation
         }
 
         /// <summary>
+        /// segment area with split predict over multiple frames
+        /// </summary>
+        /// <param name="image">input image</param>
+        /// <param name="return_callback">return callback</param>
+        /// <returns>callback function to returns segment area texture with indices in color.r</returns>
+        public IEnumerator Segment(Texture2D image, Action<Texture2D> return_callback)
+        {
+            var output_tensors = new Dictionary<string, Tensor>();
+            yield return CoroutineHandler.StartStaticCoroutine(Predict(image, (outputs) => output_tensors = outputs));
+            var output_name = runtime_model.outputs[0].name;
+            var output_tensor = output_tensors[output_name] as TensorFloat;
+
+            var indices_shape = new TensorShape(1, output_tensor.shape[2], output_tensor.shape[3]);
+            var indices = TensorInt.AllocNoData(indices_shape);
+            backend.ArgMax(output_tensor, indices, 1, false, false);
+
+            output_tensor.CompleteOperationsAndDownload();
+            indices.CompleteOperationsAndDownload();
+
+            var indices_texture = ToTexture(indices);
+            var resized_texture = Resize(indices_texture, image.width, image.height);
+
+            output_tensors.AllDispose();
+            MonoBehaviour.Destroy(indices_texture);
+
+            return_callback(resized_texture);
+        }
+
+        /// <summary>
         /// get num classes
         /// </summary>
         /// <returns>num classes</returns>
@@ -88,6 +119,7 @@ namespace HoloLab.DNN.Segmentation
         {
             SetInputMean(new Vector3(0.485f, 0.456f, 0.406f));
             SetInputStd(new Vector3(0.229f, 0.224f, 0.225f));
+            SetLayersPerFrame(runtime_model.layers.Count / 5); // TODO : automatic adjust number of layers per frame
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

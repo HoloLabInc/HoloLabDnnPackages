@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using UnityEngine;
@@ -75,9 +76,37 @@ namespace HoloLab.DNN.ObjectDetection
             return objects;
         }
 
+        /// <summary>
+        /// detect objects with split predict over multiple frames
+        /// </summary>
+        /// <param name="image">input image</param>
+        /// <param name="score_threshold">confidence score threshold</param>
+        /// <param name="iou_threshold">iou threshold</param>
+        /// <param name="return_callback">return callback</param>
+        /// <returns>callback function to returns detected object list</returns>
+        public IEnumerator Detect(Texture2D image, float score_threshold, float iou_threshold, Action<List<HoloLab.DNN.ObjectDetection.Object>> return_callback)
+        {
+            var input_texture = ResizeSquare(image);
+            var resize_ratio = GetResizeRatio(image);
+
+            var output_tensors = new Dictionary<string, Tensor>();
+            yield return CoroutineHandler.StartStaticCoroutine(Predict(input_texture, (outputs) => output_tensors = outputs));
+            var output_name = runtime_model.outputs[0].name;
+            var output_tensor = output_tensors[output_name] as TensorFloat;
+
+            var objects = PostProcess(output_tensor, resize_ratio, score_threshold);
+            objects = NonMaximumSuppression.NMS(objects, score_threshold, iou_threshold);
+
+            output_tensors.AllDispose();
+            MonoBehaviour.Destroy(input_texture);
+
+            return_callback(objects);
+        }
+
         private void Initialize()
         {
             SetInputMax(255.0f);
+            SetLayersPerFrame(runtime_model.layers.Count / 5); // TODO : automatic adjust number of layers per frame
 
             input_shape = GetInputShapes().First().Value;
             var input_width = input_shape[3];
