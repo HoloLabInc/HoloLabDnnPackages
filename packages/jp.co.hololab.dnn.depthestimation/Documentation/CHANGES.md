@@ -1,6 +1,6 @@
 # CHANGES
 
-## [1.0.2] - 2024-XX-XX
+## [1.0.2] - 2024-06-12
 
 - Update Unity Sentis to 1.5 from 1.4.
 - Update Unity Required Version to 2023.2 (Unity 6) or later.
