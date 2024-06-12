@@ -1,18 +1,18 @@
 {
     "name": "jp.co.hololab.dnn.objectdetection",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "displayName": "Object Detection",
     "description": "Object detection model with Unity Sentis.",
     "keywords": [ "unity", "sentis", "object detection", "yolox" ],
-    "unity": "2021.3",
+    "unity": "2023.2",
     "author": {
         "name": "HoloLab Inc.",
         "url": "https://hololab.co.jp"
     },
     "license": "MIT",
     "dependencies": {
-        "com.unity.sentis": "1.4.0-pre.3",
-        "jp.co.hololab.dnn.base": "1.0.1"
+        "com.unity.sentis": "1.5.0-pre.3",
+        "jp.co.hololab.dnn.base": "1.0.2"
     },
     "samples": [
         {

@@ -20,13 +20,25 @@ namespace HoloLab.DNN.ObjectDetection
         private TensorShape input_shape;
 
         /// <summary>
-        /// create object detection model for yolox from onnx file
+        /// create object detection model for yolox from sentis file
         /// </summary>
         /// <param name="file_path">model file path</param>
         /// <param name="backend_type">backend type for inference engine</param>
         /// <param name="apply_quantize">apply float16 quantize</param>
         public ObjectDetectionModel_YOLOX(string file_path, BackendType backend_type = BackendType.GPUCompute, bool apply_quantize = true)
             : base(file_path, backend_type, apply_quantize)
+        {
+            Initialize();
+        }
+
+        /// <summary>
+        /// create object detection model for yolox from stream
+        /// </summary>
+        /// <param name="stream">model stream</param>
+        /// <param name="backend_type">backend type for inference engine</param>
+        /// <param name="apply_quantize">apply float16 quantize</param>
+        public ObjectDetectionModel_YOLOX(System.IO.Stream stream, BackendType backend_type = BackendType.GPUCompute, bool apply_quantize = true)
+            : base(stream, backend_type, apply_quantize)
         {
             Initialize();
         }
@@ -144,7 +156,7 @@ namespace HoloLab.DNN.ObjectDetection
             var size = Math.Max(image.width, image.height);
             var result = new Texture2D(size, size);
             result.SetPixels(0, size - image.height, image.width, image.height, image.GetPixels());
-            result.Apply();
+            result.Apply(false);
 
             return result;
         }

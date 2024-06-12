@@ -15,13 +15,25 @@ namespace HoloLab.DNN.DepthEstimation
     public class DepthEstimationModel : BaseModel, IDisposable
     {
         /// <summary>
-        /// create depth estimation model for midas from onnx file
+        /// create depth estimation model for midas from sentis file
         /// </summary>
         /// <param name="file_path">model file path</param>
         /// <param name="backend_type">backend type for inference engine</param>
         /// <param name="apply_quantize">apply float16 quantize</param>
         public DepthEstimationModel(string file_path, BackendType backend_type = BackendType.GPUCompute, bool apply_quantize = true)
             : base(file_path, backend_type, apply_quantize)
+        {
+            Initialize();
+        }
+
+        /// <summary>
+        /// create depth estimation model for midas from stream
+        /// </summary>
+        /// <param name="stream">model stream</param>
+        /// <param name="backend_type">backend type for inference engine</param>
+        /// <param name="apply_quantize">apply float16 quantize</param>
+        public DepthEstimationModel(System.IO.Stream stream, BackendType backend_type = BackendType.GPUCompute, bool apply_quantize = true)
+            : base(stream, backend_type, apply_quantize)
         {
             Initialize();
         }
@@ -100,6 +112,8 @@ namespace HoloLab.DNN.DepthEstimation
             var render_texture = ToRenderTexture(normalized_tensor);
             var depth_texture = Resize(render_texture, input_width, input_height);
 
+            normalized_tensor?.Dispose();
+
             return depth_texture;
         }
 
@@ -117,6 +131,11 @@ namespace HoloLab.DNN.DepthEstimation
             backend.Sub(tensor, min_tensor, numerator_tensor);
             backend.Sub(max_tensor, min_tensor, denominator_tensor);
             backend.Div(numerator_tensor, denominator_tensor, normalized_tensor);
+
+            min_tensor?.Dispose();
+            max_tensor?.Dispose();
+            numerator_tensor?.Dispose();
+            denominator_tensor?.Dispose();
 
             return normalized_tensor;
         }
@@ -146,7 +165,7 @@ namespace HoloLab.DNN.DepthEstimation
 
             var resized_texture = new Texture2D(render_texture.width, render_texture.height, TextureFormat.RGBA32, false);
             resized_texture.ReadPixels(new Rect(0, 0, resized_texture.width, resized_texture.height), 0, 0);
-            resized_texture.Apply();
+            resized_texture.Apply(false);
 
             RenderTexture.active = null;
             RenderTexture.ReleaseTemporary(render_texture);

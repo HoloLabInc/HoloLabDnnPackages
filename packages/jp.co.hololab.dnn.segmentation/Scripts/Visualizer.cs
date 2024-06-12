@@ -23,7 +23,7 @@ namespace HoloLab.DNN.Segmentation
             Parallel.For(0, pixels.Length, i => { pixels[i] = colors[indices[i].r]; });
             var colorized_texture = new Texture2D(indices_texture.width, indices_texture.height, TextureFormat.RGBA32, false);
             colorized_texture.SetPixels(pixels);
-            colorized_texture.Apply();
+            colorized_texture.Apply(false);
             return colorized_texture;
         }
 

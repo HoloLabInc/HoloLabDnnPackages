@@ -16,13 +16,25 @@ namespace HoloLab.DNN.Segmentation
     public class SegmentationModel : BaseModel, IDisposable
     {
         /// <summary>
-        /// create segmentation model for general segmentation models from onnx file
+        /// create segmentation model for general segmentation models from sentis file
         /// </summary>
         /// <param name="file_path">model file path</param>
         /// <param name="backend_type">backend type for inference engine</param>
         /// <param name="apply_quantize">apply float16 quantize</param>
         public SegmentationModel(string file_path, BackendType backend_type = BackendType.GPUCompute, bool apply_quantize = true)
             : base(file_path, backend_type, apply_quantize)
+        {
+            Initialize();
+        }
+
+        /// <summary>
+        /// create segmentation model for general segmentation models from stream
+        /// </summary>
+        /// <param name="stream">model stream</param>
+        /// <param name="backend_type">backend type for inference engine</param>
+        /// <param name="apply_quantize">apply float16 quantize</param>
+        public SegmentationModel(System.IO.Stream stream, BackendType backend_type = BackendType.GPUCompute, bool apply_quantize = true)
+            : base(stream, backend_type, apply_quantize)
         {
             Initialize();
         }
@@ -68,6 +80,7 @@ namespace HoloLab.DNN.Segmentation
             var indices_texture = ToTexture(indices);
             var resized_texture = Resize(indices_texture, image.width, image.height);
 
+            indices.Dispose();
             output_tensors.AllDispose();
             MonoBehaviour.Destroy(indices_texture);
 
@@ -97,6 +110,7 @@ namespace HoloLab.DNN.Segmentation
             var indices_texture = ToTexture(indices);
             var resized_texture = Resize(indices_texture, image.width, image.height);
 
+            indices.Dispose();
             output_tensors.AllDispose();
             MonoBehaviour.Destroy(indices_texture);
 
@@ -143,7 +157,7 @@ namespace HoloLab.DNN.Segmentation
             });
 
             texture.SetPixels32(colors);
-            texture.Apply();
+            texture.Apply(false);
 
             return texture;
         }
@@ -161,7 +175,7 @@ namespace HoloLab.DNN.Segmentation
 
             var resized_texture = new Texture2D(render_texture.width, render_texture.height, TextureFormat.R8, false);
             resized_texture.ReadPixels(new Rect(0, 0, render_texture.width, render_texture.height), 0, 0);
-            resized_texture.Apply();
+            resized_texture.Apply(false);
 
             RenderTexture.active = null;
             RenderTexture.ReleaseTemporary(render_texture);

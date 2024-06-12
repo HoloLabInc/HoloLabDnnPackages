@@ -17,13 +17,25 @@ namespace HoloLab.DNN.Classification
         private bool apply_softmax = true;
 
         /// <summary>
-        /// create classification model from onnx file
+        /// create classification model from sentis file
         /// </summary>
         /// <param name="file_path">model file path</param>
         /// <param name="backend_type">backend type for inference engine</param>
         /// <param name="apply_quantize">apply float16 quantize</param>
         public ClassificationModel(string file_path, BackendType backend_type = BackendType.GPUCompute, bool apply_quantize = true)
             : base(file_path, backend_type, apply_quantize)
+        {
+            Initialize();
+        }
+
+        /// <summary>
+        /// create classification model from stream
+        /// </summary>
+        /// <param name="stream">model stream</param>
+        /// <param name="backend_type">backend type for inference engine</param>
+        /// <param name="apply_quantize">apply float16 quantize</param>
+        public ClassificationModel(System.IO.Stream stream, BackendType backend_type = BackendType.GPUCompute, bool apply_quantize = true)
+            : base(stream, backend_type, apply_quantize)
         {
             Initialize();
         }

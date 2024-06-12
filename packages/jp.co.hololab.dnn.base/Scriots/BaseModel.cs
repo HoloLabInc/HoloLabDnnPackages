@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 using Unity.Sentis;
-using Unity.Sentis.ONNX;
 using Unity.Sentis.Quantization;
 
 namespace HoloLab.DNN.Base
@@ -25,15 +24,26 @@ namespace HoloLab.DNN.Base
         private int layers_per_frame = 5;
 
         /// <summary>
-        /// create base model from onnx file
+        /// create base model from sentis file
         /// </summary>
         /// <param name="file_path">model file path</param>
         /// <param name="backend_type">backend type for inference engine</param>
         /// <param name="apply_quantize">apply float16 quantize</param>
         public BaseModel(string file_path, BackendType backend_type = BackendType.GPUCompute, bool apply_quantize = false)
         {
-            var converter = new ONNXModelConverter(file_path);
-            runtime_model = converter.Convert();
+            runtime_model = ModelLoader.Load(file_path);
+            Initialize(backend_type, apply_quantize);
+        }
+
+        /// <summary>
+        /// create base model from stream
+        /// </summary>
+        /// <param name="stream">mdoel stream</param>
+        /// <param name="backend_type">backend type for inference engine</param>
+        /// <param name="apply_quantize">apply float16 quantize</param>
+        public BaseModel(System.IO.Stream stream, BackendType backend_type = BackendType.GPUCompute, bool apply_quantize = false)
+        {
+            runtime_model = ModelLoader.Load(stream);
             Initialize(backend_type, apply_quantize);
         }
 
@@ -284,7 +294,7 @@ namespace HoloLab.DNN.Base
 
             var result = new Texture2D(render_texture.width, render_texture.height, TextureFormat.RGBAHalf, false);
             result.ReadPixels(new Rect(0, 0, render_texture.width, render_texture.height), 0, 0);
-            result.Apply();
+            result.Apply(false);
 
             return result;
         }

@@ -42,7 +42,7 @@ Please see README of each package about how to use package.
 
 ## Environment
 
-These packages work on Unity 2021.3 LTS or later.  
+These packages work on Unity 2023.2 (Unity 6) or later.  
 
 ## License
 
