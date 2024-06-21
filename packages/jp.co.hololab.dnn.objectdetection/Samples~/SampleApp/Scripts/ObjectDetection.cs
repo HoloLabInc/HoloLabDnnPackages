@@ -16,7 +16,8 @@ namespace Sample
         [SerializeField, Tooltip("Confidence Score Threshold"), Range(0.0f, 1.0f)] private float score_threshold = 0.6f;
         [SerializeField, Tooltip("IoU Threshold"), Range(0.0f, 1.0f)] private float iou_threshold = 0.4f;
 
-        private HoloLab.DNN.ObjectDetection.ObjectDetectionModel_YOLOX model;
+        //private HoloLab.DNN.ObjectDetection.ObjectDetectionModel_YOLOX model;
+        private HoloLab.DNN.ObjectDetection.ObjectDetectionModel_YOLOv9 model;
         private Font font;
         private Color color_offset;
         private List<Color> colors;
@@ -25,7 +26,8 @@ namespace Sample
         private void Start()
         {
             // Create Object Detection Model
-            model = new HoloLab.DNN.ObjectDetection.ObjectDetectionModel_YOLOX(weights);
+            //model = new HoloLab.DNN.ObjectDetection.ObjectDetectionModel_YOLOX(weights);
+            model = new HoloLab.DNN.ObjectDetection.ObjectDetectionModel_YOLOv9(weights);
 
             // Read Label List from Text Asset
             labels = new List<string>(Regex.Split(names.text, "\r\n|\r|\n"));

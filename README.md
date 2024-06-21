@@ -26,7 +26,7 @@ Please see README of each package about how to use package.
   ![classification](images/classification.png)  
 
 * [jp.co.hololab.dnn.objectdetection](packages/jp.co.hololab.dnn.objectdetection/Documentation/README.md)  
-  This package is providing object detection class using YOLOX model.  
+  This package is providing object detection class using YOLOX model and YOLOv9 MIT model.  
   This package contains simple inference sample app to learn how to use object detection class.  
   ![objectdetection](images/objectdetection.png)  
 

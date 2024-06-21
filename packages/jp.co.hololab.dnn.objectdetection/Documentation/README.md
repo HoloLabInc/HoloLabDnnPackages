@@ -2,7 +2,7 @@
 
 ## About
 
-This package is providing object detection using YOLOX model.  
+This package is providing object detection using YOLOX model and YOLOv9 MIT model.  
 This object detection is implemented based on Sentis.  
 
 ## Environment
@@ -20,6 +20,9 @@ The following models are expected to works.
 Please export trained weights to ONNX format.  
 
 * ObjectDetectionModel_YOLOX class : [YOLOX](https://github.com/Megvii-BaseDetection/YOLOX)
+* ObjectDetectionModel_YOLOv9 class : [YOLOv9 MIT](https://github.com/WongKinYiu/YOLO) <sup>*1</sup>
+
+<sup>*1 Required to overwrite input layer shape to 1x3x640x640 using ONNX Simplifier. (e.g. onnxsim --overwrite-input-shape="1,3,640,640" ./v9-s.onnx ./yolov9_s.onnx)</sup>
 
 ## How To Add Package
 
