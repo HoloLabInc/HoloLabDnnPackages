@@ -164,19 +164,18 @@ namespace HoloLab.DNN.ObjectDetection
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private List<HoloLab.DNN.ObjectDetection.Object> PostProcess(Dictionary<string, Tensor> output_tensors, float resize_ratio, Vector2 pad, float score_threshold)
         {
-            var predicts = output_tensors.Select((x, i) => new { x, i })
-                                         .GroupBy(x => x.i / 3)
-                                         .Select(g => g.Select(x => x.x.Value).ToArray());
-
-            var predicts_cls = new List<TensorFloat>(predicts.Count());
-            var predicts_box = new List<TensorFloat>(predicts.Count());
-            foreach (var predict in predicts)
+            var predicts = output_tensors.Values.ToArray();
+            var num_predicts = predicts.Count() / 3;
+            var predicts_cls = new List<TensorFloat>(num_predicts);
+            var predicts_box = new List<TensorFloat>(num_predicts);
+            for (var i = 0; i < predicts.Count(); i+=3)
             {
-                var predict_cls = predict[0] as TensorFloat;
-                var predict_box = predict[2] as TensorFloat;
+                var predict_cls = predicts[i + 0] as TensorFloat;
+                var predict_box = predicts[i + 2] as TensorFloat;
                 predicts_cls.Add(Rearrange(predict_cls));
                 predicts_box.Add(Rearrange(predict_box));
             }
+
             var classes_tensor = Concat(predicts_cls);
             var boxes_tensor = Mul(Concat(predicts_box), scalars);
 
