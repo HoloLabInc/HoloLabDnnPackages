@@ -53,7 +53,7 @@ namespace HoloLab.DNN.Base
         /// <param name="model_asset">model asset</param>
         /// <param name="backend_type">backend type for inference engine</param>
         /// <param name="apply_quantize">apply float16 quantize</param>
-        public BaseModel(ModelAsset model_asset, BackendType backend_type = BackendType.GPUCompute, bool apply_quantize = true)
+        public BaseModel(ModelAsset model_asset, BackendType backend_type = BackendType.GPUCompute, bool apply_quantize = false)
         {
             runtime_model = ModelLoader.Load(model_asset);
             Initialize(backend_type, apply_quantize);
