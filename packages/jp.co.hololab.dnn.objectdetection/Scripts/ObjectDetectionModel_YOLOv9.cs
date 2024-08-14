@@ -272,8 +272,7 @@ namespace HoloLab.DNN.ObjectDetection
         private Texture2D ResizeSquare(Texture2D image)
         {
             var size = Math.Max(image.width, image.height);
-            var result = new Texture2D(size, size);
-
+            var result = new Texture2D(size, size, image.format, false);
             result.SetPixels(0, (size - image.height) / 2, image.width, image.height, image.GetPixels());
             result.Apply(false);
 

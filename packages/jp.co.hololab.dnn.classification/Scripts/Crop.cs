@@ -16,7 +16,7 @@ namespace HoloLab.DNN.Classification
         public static Texture2D CenterCrop(Texture2D image)
         {
             var short_side = Math.Min(image.width, image.height);
-            var result = new Texture2D(short_side, short_side);
+            var result = new Texture2D(short_side, short_side, image.format, false);
             var pixels = image.GetPixels(
                 (int)((image.width - short_side) * 0.5f),
                 (int)((image.height - short_side) * 0.5f),
@@ -24,7 +24,7 @@ namespace HoloLab.DNN.Classification
                 short_side
             );
             result.SetPixels(pixels);
-            result.Apply();
+            result.Apply(false);
 
             return result;
         }
