@@ -19,8 +19,10 @@ namespace HoloLab.DNN.ObjectDetection
         public static void DrawBoudingBox(Graphic graphic, Rect rect, Color color)
         {
             var texture_size = new Vector2(graphic.mainTexture.width, graphic.mainTexture.height);
-            var ui_size = graphic.GetComponent<RectTransform>().sizeDelta;
-            var ui_pivot = graphic.GetComponent<RectTransform>().pivot;
+
+            var ui_rect_transform = graphic.GetComponent<RectTransform>();
+            var ui_size = new Vector2(ui_rect_transform.rect.width, ui_rect_transform.rect.height);
+            var ui_pivot = ui_rect_transform.pivot;
 
             var panel = new GameObject("BoundingBox");
             panel.AddComponent<CanvasRenderer>();
@@ -30,8 +32,8 @@ namespace HoloLab.DNN.ObjectDetection
                 ((rect.center.x / texture_size.x) - ui_pivot.x) * ui_size.x,
                 -((rect.center.y / texture_size.y) - (1.0f - ui_pivot.y)) * ui_size.y
             );
-            var rect_transform = panel.GetComponent<RectTransform>();
-            rect_transform.sizeDelta = new Vector2(
+            var panel_rect_transform = panel.GetComponent<RectTransform>();
+            panel_rect_transform.sizeDelta = new Vector2(
                 (rect.width / texture_size.x) * ui_size.x,
                 (rect.height / texture_size.y) * ui_size.y
             );
@@ -49,8 +51,10 @@ namespace HoloLab.DNN.ObjectDetection
         public static void DrawLabel(Graphic graphic, Rect rect, Color color, string label, Font font, int font_size = 22)
         {
             var texture_size = new Vector2(graphic.mainTexture.width, graphic.mainTexture.height);
-            var ui_size = graphic.GetComponent<RectTransform>().sizeDelta;
-            var ui_pivot = graphic.GetComponent<RectTransform>().pivot;
+
+            var ui_rect_transform = graphic.GetComponent<RectTransform>();
+            var ui_size = new Vector2(ui_rect_transform.rect.width, ui_rect_transform.rect.height);
+            var ui_pivot = ui_rect_transform.pivot;
 
             var game_object = new GameObject("Label");
             var text = game_object.AddComponent<Text>();
@@ -63,8 +67,8 @@ namespace HoloLab.DNN.ObjectDetection
                 ((rect.center.x / texture_size.x) - ui_pivot.x) * ui_size.x,
                 -((rect.center.y / texture_size.y) - (1.0f - ui_pivot.y)) * ui_size.y
             );
-            var rect_transform = game_object.GetComponent<RectTransform>();
-            rect_transform.sizeDelta = new Vector2(
+            var text_rect_transform = game_object.GetComponent<RectTransform>();
+            text_rect_transform.sizeDelta = new Vector2(
                 (rect.width / texture_size.x) * ui_size.x,
                 (rect.height / texture_size.y) * ui_size.y
             );
