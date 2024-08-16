@@ -206,15 +206,45 @@ namespace HoloLab.DNN.Base
         }
 
         /// <summary>
-        /// set number of layers to process per frame
+        /// set number of layers per frame to slice inference
         /// </summary>
-        /// <param name="layers_per_frame">number of layers per frame (-1 is process all layers per frame)</param>
-        public void SetLayersPerFrame(int layers_per_frame)
+        /// <param name="num_layers">number of layers per frame (-1 is process all layers per frame)</param>
+        [Obsolete("this method has been renamed. please use SetSliceLayers() or SetSliceFrames().", false)]
+        public void SetLayersPerFrame(int num_layers)
         {
-            this.layers_per_frame = layers_per_frame;
-            if (this.layers_per_frame < 0)
+            SetSliceLayers(num_layers);
+        }
+
+        /// <summary>
+        /// set number of layers per frame to slice inference
+        /// </summary>
+        /// <param name="num_layers">number of layers per frame (-1 is process all layers per frame)</param>
+        [Obsolete("this method has been renamed. please use ", false)]
+        public void SetSliceLayers(int num_layers)
+        {
+            this.layers_per_frame = num_layers;
+            if (this.layers_per_frame <= 0)
             {
                 this.layers_per_frame = runtime_model.layers.Count;
+            }
+        }
+
+        /// <summary>
+        /// set number of frames to slice inference
+        /// </summary>
+        /// <param name="num_frames">number of frames per inference (-1 is process all layers per frame)</param>
+        public void SetSliceFrames(int num_frames)
+        {
+            try
+            {
+                this.layers_per_frame = (int)Math.Ceiling((float)runtime_model.layers.Count / (float)num_frames);
+            }
+            finally
+            {
+                if (this.layers_per_frame <= 0)
+                {
+                    this.layers_per_frame = runtime_model.layers.Count;
+                }
             }
         }
 
