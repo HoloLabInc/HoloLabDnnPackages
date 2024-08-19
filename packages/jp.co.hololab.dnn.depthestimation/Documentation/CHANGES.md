@@ -1,5 +1,9 @@
 # CHANGES
 
+## [1.0.3] - 2024-08-20
+
+- Update Unity Sentis to 1.6 from 1.5.
+
 ## [1.0.2] - 2024-06-12
 
 - Update Unity Sentis to 1.5 from 1.4.
