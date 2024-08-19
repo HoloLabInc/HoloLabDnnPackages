@@ -1,6 +1,6 @@
 # CHANGES
 
-## [1.0.3] - 2024-XX-XX
+## [1.0.3] - 2024-08-20
 
 - Update Unity Sentis to 1.6 from 1.5.
 
