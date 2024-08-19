@@ -179,8 +179,8 @@ namespace HoloLab.DNN.ObjectDetection
             var classes_tensor = Concat(predicts_cls);
             var boxes_tensor = Mul(Concat(predicts_box), scalars);
 
-            classes_tensor.CompleteOperationsAndDownload();
-            boxes_tensor.CompleteOperationsAndDownload();
+            classes_tensor = classes_tensor.ReadbackAndClone();
+            boxes_tensor = boxes_tensor.ReadbackAndClone();
 
             var classes = classes_tensor.ToReadOnlySpan();
             var boxes = boxes_tensor.ToReadOnlySpan();
@@ -250,7 +250,13 @@ namespace HoloLab.DNN.ObjectDetection
                 concat_shape = concat_shape.Concat(tensor.shape, axis);
             }
             var concat_tensor = TensorFloat.AllocNoData(concat_shape);
-            backend.Concat(tensors.ToArray(), concat_tensor, axis);
+
+            var start = 0;
+            foreach (var tensor in tensors)
+            {
+                backend.SliceSet(tensor, concat_tensor, axis, start, 1);
+                start += tensor.shape[axis];
+            }
 
             tensors.AllDispose();
 

@@ -1,6 +1,6 @@
 {
     "name": "jp.co.hololab.dnn.depthestimation",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "displayName": "Depth Estimation",
     "description": "Depth Estimation model with Unity Sentis.",
     "keywords": [ "unity", "sentis", "depth estimation" ],
@@ -11,8 +11,8 @@
     },
     "license": "MIT",
     "dependencies": {
-        "com.unity.sentis": "1.5.0-pre.3",
-        "jp.co.hololab.dnn.base": "1.0.2"
+        "com.unity.sentis": "1.6.0-pre.1",
+        "jp.co.hololab.dnn.base": "1.0.3"
     },
     "samples": [
         {

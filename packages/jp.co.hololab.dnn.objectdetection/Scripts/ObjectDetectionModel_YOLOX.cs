@@ -172,7 +172,7 @@ namespace HoloLab.DNN.ObjectDetection
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private List<HoloLab.DNN.ObjectDetection.Object> PostProcess(TensorFloat output_tensor, float resize_ratio, float score_threshold = 0.0f)
         {
-            output_tensor.CompleteOperationsAndDownload();
+            output_tensor = output_tensor.ReadbackAndClone();
             var output_span = output_tensor.ToReadOnlySpan();
 
             var objects = new List<HoloLab.DNN.ObjectDetection.Object>();
@@ -200,6 +200,8 @@ namespace HoloLab.DNN.ObjectDetection
 
                 objects.Add(new HoloLab.DNN.ObjectDetection.Object(rect, class_id, score));
             }
+
+            output_tensor.Dispose();
 
             return objects;
         }

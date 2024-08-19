@@ -72,10 +72,9 @@ namespace HoloLab.DNN.Segmentation
 
             var indices_shape = new TensorShape(1, output_tensor.shape[2], output_tensor.shape[3]);
             var indices = TensorInt.AllocNoData(indices_shape);
-            backend.ArgMax(output_tensor, indices, 1, false, false);
+            backend.ArgMax(output_tensor, indices, 1, false);
 
-            output_tensor.CompleteOperationsAndDownload();
-            indices.CompleteOperationsAndDownload();
+            indices = indices.ReadbackAndClone();
 
             var indices_texture = ToTexture(indices);
             var resized_texture = Resize(indices_texture, image.width, image.height);
@@ -102,10 +101,9 @@ namespace HoloLab.DNN.Segmentation
 
             var indices_shape = new TensorShape(1, output_tensor.shape[2], output_tensor.shape[3]);
             var indices = TensorInt.AllocNoData(indices_shape);
-            backend.ArgMax(output_tensor, indices, 1, false, false);
+            backend.ArgMax(output_tensor, indices, 1, false);
 
-            output_tensor.CompleteOperationsAndDownload();
-            indices.CompleteOperationsAndDownload();
+            indices = indices.ReadbackAndClone();
 
             var indices_texture = ToTexture(indices);
             var resized_texture = Resize(indices_texture, image.width, image.height);

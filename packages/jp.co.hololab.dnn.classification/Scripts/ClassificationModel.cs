@@ -91,14 +91,16 @@ namespace HoloLab.DNN.Classification
             }
 
             var index = TensorInt.AllocNoData(new TensorShape(1));
-            backend.ArgMax(confidences, index, -1, true, false);
+            backend.ArgMax(confidences, index, -1, false);
 
-            confidences.CompleteOperationsAndDownload();
-            index.CompleteOperationsAndDownload();
+            confidences = confidences.ReadbackAndClone();
+            index = index.ReadbackAndClone();
 
             var class_id = index[0];
             var score = confidences[class_id];
 
+            confidences.Dispose();
+            index.Dispose();
             output_tensors.AllDispose();
 
             return (class_id, score);
@@ -128,14 +130,16 @@ namespace HoloLab.DNN.Classification
             }
 
             var index = TensorInt.AllocNoData(new TensorShape(1));
-            backend.ArgMax(confidences, index, -1, true, false);
+            backend.ArgMax(confidences, index, -1, false);
 
-            confidences.CompleteOperationsAndDownload();
-            index.CompleteOperationsAndDownload();
+            confidences = confidences.ReadbackAndClone();
+            index = index.ReadbackAndClone();
 
             var class_id = index[0];
             var score = confidences[class_id];
 
+            confidences.Dispose();
+            index.Dispose();
             output_tensors.AllDispose();
 
             return_callback((class_id, score));
@@ -167,8 +171,8 @@ namespace HoloLab.DNN.Classification
             var topk_indices = TensorInt.AllocNoData(output_tensor.shape);
             backend.TopK(confidences, topk_values, topk_indices, topk, -1, true);
 
-            topk_values.CompleteOperationsAndDownload();
-            topk_indices.CompleteOperationsAndDownload();
+            topk_values = topk_values.ReadbackAndClone();
+            topk_indices = topk_indices.ReadbackAndClone();
 
             var classes = new List<(int, float)>(topk);
             foreach (int i in Enumerable.Range(0, topk))
@@ -178,6 +182,8 @@ namespace HoloLab.DNN.Classification
                 classes.Add((class_id, score));
             }
 
+            topk_values.Dispose();
+            topk_indices.Dispose();
             output_tensors.AllDispose();
 
             return classes;
@@ -211,8 +217,8 @@ namespace HoloLab.DNN.Classification
             var topk_indices = TensorInt.AllocNoData(output_tensor.shape);
             backend.TopK(confidences, topk_values, topk_indices, topk, -1, true);
 
-            topk_values.CompleteOperationsAndDownload();
-            topk_indices.CompleteOperationsAndDownload();
+            topk_values = topk_values.ReadbackAndClone();
+            topk_indices = topk_indices.ReadbackAndClone();
 
             var classes = new List<(int, float)>(topk);
             foreach (int i in Enumerable.Range(0, topk))
@@ -222,6 +228,8 @@ namespace HoloLab.DNN.Classification
                 classes.Add((class_id, score));
             }
 
+            topk_values.Dispose();
+            topk_indices.Dispose();
             output_tensors.AllDispose();
 
             return_callback(classes);

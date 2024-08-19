@@ -69,10 +69,11 @@ namespace HoloLab.DNN.DepthEstimation
             var output_name = runtime_model.outputs.Count == 1 ? runtime_model.outputs[0].name : "output"; // TODO : fixed output layer name, because only dpt_levit_224_224x224 model have 2 outputs. (maybe bug)
             var output_tensor = output_tensors[output_name] as TensorFloat;
 
-            output_tensor.CompleteOperationsAndDownload();
+            output_tensor = output_tensor.ReadbackAndClone();
 
             var depth_texture = PostProcess(output_tensor, image.width, image.height);
 
+            output_tensor.Dispose();
             output_tensors.AllDispose();
 
             return depth_texture;
@@ -91,10 +92,11 @@ namespace HoloLab.DNN.DepthEstimation
             var output_name = runtime_model.outputs.Count == 1 ? runtime_model.outputs[0].name : "output"; // TODO : fixed output layer name, because only dpt_levit_224_224x224 model have 2 outputs. (maybe bug)
             var output_tensor = output_tensors[output_name] as TensorFloat;
 
-            output_tensor.CompleteOperationsAndDownload();
+            output_tensor = output_tensor.ReadbackAndClone();
 
             var depth_texture = PostProcess(output_tensor, image.width, image.height);
 
+            output_tensor.Dispose();
             output_tensors.AllDispose();
 
             return_callback(depth_texture);
@@ -121,9 +123,9 @@ namespace HoloLab.DNN.DepthEstimation
         private TensorFloat Normalize(TensorFloat tensor)
         {
             var min_tensor = TensorFloat.AllocNoData(new TensorShape(1));
-            backend.ReduceMin(tensor, min_tensor, null, false);
+            backend.ReduceMin(tensor, min_tensor, null);
             var max_tensor = TensorFloat.AllocNoData(new TensorShape(1));
-            backend.ReduceMax(tensor, max_tensor, null, false);
+            backend.ReduceMax(tensor, max_tensor, null);
 
             var numerator_tensor = TensorFloat.AllocNoData(tensor.shape);
             var denominator_tensor = TensorFloat.AllocNoData(tensor.shape);

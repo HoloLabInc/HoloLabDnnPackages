@@ -96,7 +96,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.sentis": {
-      "version": "1.5.0-pre.3",
+      "version": "1.6.0-pre.1",
       "depth": 0,
       "source": "registry",
       "dependencies": {
