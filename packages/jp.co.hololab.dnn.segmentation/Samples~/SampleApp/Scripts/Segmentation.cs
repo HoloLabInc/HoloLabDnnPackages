@@ -26,7 +26,7 @@ namespace Sample
             model.SetInputMean(mean);
             model.SetInputStd(std);
 
-            // Create Colors
+            // Create Colors for Visualize
             var num_classes = model.GetNumClasses();
             var random_seed = 0;
             colors = HoloLab.DNN.Segmentation.Visualizer.GenerateRandomColors(num_classes, alpha, random_seed);

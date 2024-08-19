@@ -32,7 +32,7 @@ namespace Sample
             // Read Label List from Text Asset
             labels = new List<string>(Regex.Split(names.text, "\r\n|\r|\n"));
 
-            // Create Visualizer and Colors
+            // Get Font and Create Colors for Visualize
             try
             {
                 font = Resources.GetBuiltinResource(typeof(Font), "Arial.ttf") as Font;
