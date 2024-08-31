@@ -2,6 +2,7 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 namespace HoloLab.DNN.ObjectDetection
 {
@@ -69,6 +70,39 @@ namespace HoloLab.DNN.ObjectDetection
             );
             var text_rect_transform = game_object.GetComponent<RectTransform>();
             text_rect_transform.sizeDelta = new Vector2(
+                (rect.width / texture_size.x) * ui_size.x,
+                (rect.height / texture_size.y) * ui_size.y
+            );
+        }
+
+        /// <summary>
+        /// draw label on bounding box for text mesh pro
+        /// </summary>
+        /// <param name="graphic">graphical unity ui object</param>
+        /// <param name="rect">rect</param>
+        /// <param name="color">color</param>
+        /// <param name="label">label</param>
+        /// <param name="font">font</param>
+        /// <param name="font_size">font size</param>
+        public static void DrawLabel(Graphic graphic, Rect rect, Color color, string label, TMP_FontAsset font, int font_size = 22)
+        {
+            var texture_size = new Vector2(graphic.mainTexture.width, graphic.mainTexture.height);
+            var ui_size = graphic.GetComponent<RectTransform>().sizeDelta;
+            var ui_pivot = graphic.GetComponent<RectTransform>().pivot;
+
+            var game_object = new GameObject("Label");
+            var text = game_object.AddComponent<TextMeshProUGUI>();
+            text.text = label;
+            text.color = color;
+            text.font = font;
+            text.fontSize = font_size;
+            text.transform.SetParent(graphic.transform, false);
+            text.transform.localPosition = new Vector3(
+                ((rect.center.x / texture_size.x) - ui_pivot.x) * ui_size.x,
+                -((rect.center.y / texture_size.y) - (1.0f - ui_pivot.y)) * ui_size.y
+            );
+            var rect_transform = game_object.GetComponent<RectTransform>();
+            rect_transform.sizeDelta = new Vector2(
                 (rect.width / texture_size.x) * ui_size.x,
                 (rect.height / texture_size.y) * ui_size.y
             );
