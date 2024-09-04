@@ -3,7 +3,8 @@
     "rootNamespace": "HoloLab.DNN.ObjectDetection",
     "references": [
         "GUID:c98377141161c7746a178fb5cb1af075",
-        "GUID:3983cb600bd448a41a089f5415d03f05"
+        "GUID:3983cb600bd448a41a089f5415d03f05",
+        "GUID:6055be8ebefd69e48b49212b09b47b2f"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
