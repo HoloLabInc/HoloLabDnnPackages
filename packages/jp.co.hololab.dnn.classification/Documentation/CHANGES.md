@@ -6,7 +6,6 @@
 - Move some internal post processing to Functional API from IBackend API.
 - Remove apply_quantize argument from constructor. Instead of that, please use ApplyQuantize() function inherited from BaseModel class.
 - Remove apply_softmax argument from SetApplySoftmax() function, and rename to ApplySoftmax() function.
-- Add support Apple Vision Pro.
 
 ## [1.0.3] - 2024-08-20
 
