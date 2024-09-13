@@ -25,7 +25,8 @@ namespace Sample
         {
             // Create Classification Model
             model = new HoloLab.DNN.Classification.ClassificationModel(weights);
-            model.SetApplySoftmax(apply_softmax);
+            if (apply_softmax) { model.ApplySoftmax(); }
+            model.ApplyQuantize();
             model.SetInputMean(mean);
             model.SetInputStd(std);
 

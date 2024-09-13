@@ -28,6 +28,7 @@ namespace Sample
             // Create Object Detection Model
             //model = new HoloLab.DNN.ObjectDetection.ObjectDetectionModel_YOLOX(weights);
             model = new HoloLab.DNN.ObjectDetection.ObjectDetectionModel_YOLOv9(weights);
+            model.ApplyQuantize();
 
             // Read Label List from Text Asset
             labels = new List<string>(Regex.Split(names.text, "\r\n|\r|\n"));

@@ -19,6 +19,7 @@ namespace Sample
         {
             // Create Depth Estimation Model
             model = new HoloLab.DNN.DepthEstimation.DepthEstimationModel(weights);
+            model.ApplyQuantize();
             model.SetInputMean(mean);
             model.SetInputStd(std);
         }

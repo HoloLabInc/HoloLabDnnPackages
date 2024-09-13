@@ -19,9 +19,8 @@ namespace HoloLab.DNN.DepthEstimation
         /// </summary>
         /// <param name="file_path">model file path</param>
         /// <param name="backend_type">backend type for inference engine</param>
-        /// <param name="apply_quantize">apply float16 quantize</param>
-        public DepthEstimationModel(string file_path, BackendType backend_type = BackendType.GPUCompute, bool apply_quantize = true)
-            : base(file_path, backend_type, apply_quantize)
+        public DepthEstimationModel(string file_path, BackendType backend_type = BackendType.GPUCompute)
+            : base(file_path, backend_type)
         {
             Initialize();
         }
@@ -31,9 +30,8 @@ namespace HoloLab.DNN.DepthEstimation
         /// </summary>
         /// <param name="stream">model stream</param>
         /// <param name="backend_type">backend type for inference engine</param>
-        /// <param name="apply_quantize">apply float16 quantize</param>
-        public DepthEstimationModel(System.IO.Stream stream, BackendType backend_type = BackendType.GPUCompute, bool apply_quantize = true)
-            : base(stream, backend_type, apply_quantize)
+        public DepthEstimationModel(System.IO.Stream stream, BackendType backend_type = BackendType.GPUCompute)
+            : base(stream, backend_type)
         {
             Initialize();
         }
@@ -43,9 +41,8 @@ namespace HoloLab.DNN.DepthEstimation
         /// </summary>
         /// <param name="model_asset">model asset</param>
         /// <param name="backend_type">backend type for inference engine</param>
-        /// <param name="apply_quantize">apply float16 quantize</param>
-        public DepthEstimationModel(ModelAsset model_asset, BackendType backend_type = BackendType.GPUCompute, bool apply_quantize = true)
-            : base(model_asset, backend_type, apply_quantize)
+        public DepthEstimationModel(ModelAsset model_asset, BackendType backend_type = BackendType.GPUCompute)
+            : base(model_asset, backend_type)
         {
             Initialize();
         }
@@ -66,8 +63,8 @@ namespace HoloLab.DNN.DepthEstimation
         public Texture2D Estimate(Texture2D image)
         {
             var output_tensors = Predict(image);
-            var output_name = runtime_model.outputs.Count == 1 ? runtime_model.outputs[0].name : "output"; // TODO : fixed output layer name, because only dpt_levit_224_224x224 model have 2 outputs. (maybe bug)
-            var output_tensor = output_tensors[output_name] as TensorFloat;
+            var output_name = runtime_model.outputs[0].name;
+            var output_tensor = output_tensors[output_name] as Tensor<float>;
 
             output_tensor = output_tensor.ReadbackAndClone();
 
@@ -89,8 +86,8 @@ namespace HoloLab.DNN.DepthEstimation
         {
             var output_tensors = new Dictionary<string, Tensor>();
             yield return CoroutineHandler.StartStaticCoroutine(Predict(image, (outputs) => output_tensors = outputs));
-            var output_name = runtime_model.outputs.Count == 1 ? runtime_model.outputs[0].name : "output"; // TODO : fixed output layer name, because only dpt_levit_224_224x224 model have 2 outputs. (maybe bug)
-            var output_tensor = output_tensors[output_name] as TensorFloat;
+            var output_name = runtime_model.outputs[0].name;
+            var output_tensor = output_tensors[output_name] as Tensor<float>;
 
             output_tensor = output_tensor.ReadbackAndClone();
 
@@ -104,46 +101,46 @@ namespace HoloLab.DNN.DepthEstimation
 
         private void Initialize()
         {
-            SetLayersPerFrame(runtime_model.layers.Count / 5); // TODO : automatic adjust number of layers per frame
+            SetEditedModel(AddPostProcess());
+            SetSliceFrames(5); // TODO : automatic adjust number of layers per frame
+        }
+
+        private Model AddPostProcess()
+        {
+            try
+            {
+                var functional_graph = new FunctionalGraph();
+                var inputs = functional_graph.AddInputs(base.runtime_model);
+                var predict = Functional.Forward(base.runtime_model, inputs)[0];
+
+                var min_tensor = Functional.ReduceMin(predict, new int[2] { 2, 3 });
+                var max_tensor = Functional.ReduceMax(predict, new int[2] { 2, 3 });
+
+                var numerator_tensor = Functional.Sub(predict, min_tensor);
+                var denominator_tensor = Functional.Sub(max_tensor, min_tensor);
+                var normalized_tensor = Functional.Div(numerator_tensor, denominator_tensor);
+
+                var edited_model = functional_graph.Compile(normalized_tensor);
+
+                return edited_model;
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"[error] can not add post process to model for some reason. ({e.Message})");
+            }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private Texture2D PostProcess(TensorFloat tensor, int input_width, int input_height)
+        private Texture2D PostProcess(Tensor<float> tensor, int input_width, int input_height)
         {
-            var normalized_tensor = Normalize(tensor);
-            var render_texture = ToRenderTexture(normalized_tensor);
+            var render_texture = ToRenderTexture(tensor);
             var depth_texture = Resize(render_texture, input_width, input_height);
-
-            normalized_tensor?.Dispose();
 
             return depth_texture;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private TensorFloat Normalize(TensorFloat tensor)
-        {
-            var min_tensor = TensorFloat.AllocNoData(new TensorShape(1));
-            backend.ReduceMin(tensor, min_tensor, null);
-            var max_tensor = TensorFloat.AllocNoData(new TensorShape(1));
-            backend.ReduceMax(tensor, max_tensor, null);
-
-            var numerator_tensor = TensorFloat.AllocNoData(tensor.shape);
-            var denominator_tensor = TensorFloat.AllocNoData(tensor.shape);
-            var normalized_tensor = TensorFloat.AllocNoData(tensor.shape);
-            backend.Sub(tensor, min_tensor, numerator_tensor);
-            backend.Sub(max_tensor, min_tensor, denominator_tensor);
-            backend.Div(numerator_tensor, denominator_tensor, normalized_tensor);
-
-            min_tensor?.Dispose();
-            max_tensor?.Dispose();
-            numerator_tensor?.Dispose();
-            denominator_tensor?.Dispose();
-
-            return normalized_tensor;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private RenderTexture ToRenderTexture(TensorFloat tensor)
+        private RenderTexture ToRenderTexture(Tensor<float> tensor)
         {
             if (tensor.shape.rank != 4)
             {

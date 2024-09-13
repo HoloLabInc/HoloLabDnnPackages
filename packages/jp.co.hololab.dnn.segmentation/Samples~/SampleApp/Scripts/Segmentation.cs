@@ -23,6 +23,7 @@ namespace Sample
         {
             // Create Segmentation Model
             model = new HoloLab.DNN.Segmentation.SegmentationModel(weights);
+            model.ApplyQuantize();
             model.SetInputMean(mean);
             model.SetInputStd(std);
 

@@ -16,17 +16,17 @@ namespace HoloLab.DNN.ObjectDetection
     {
         private List<int> strides;
         private List<Vector2Int> anchors;
-        private TensorFloat scalars;
+        private Tensor<float> scalars;
         private TensorShape input_shape;
+        private TensorShape[] output_shapes;
 
         /// <summary>
         /// create object detection model for yolox from sentis file
         /// </summary>
         /// <param name="file_path">model file path</param>
         /// <param name="backend_type">backend type for inference engine</param>
-        /// <param name="apply_quantize">apply float16 quantize</param>
-        public ObjectDetectionModel_YOLOv9(string file_path, BackendType backend_type = BackendType.GPUCompute, bool apply_quantize = true)
-            : base(file_path, backend_type, apply_quantize)
+        public ObjectDetectionModel_YOLOv9(string file_path, BackendType backend_type = BackendType.GPUCompute)
+            : base(file_path, backend_type)
         {
             Initialize();
         }
@@ -36,9 +36,8 @@ namespace HoloLab.DNN.ObjectDetection
         /// </summary>
         /// <param name="stream">model stream</param>
         /// <param name="backend_type">backend type for inference engine</param>
-        /// <param name="apply_quantize">apply float16 quantize</param>
-        public ObjectDetectionModel_YOLOv9(System.IO.Stream stream, BackendType backend_type = BackendType.GPUCompute, bool apply_quantize = true)
-            : base(stream, backend_type, apply_quantize)
+        public ObjectDetectionModel_YOLOv9(System.IO.Stream stream, BackendType backend_type = BackendType.GPUCompute)
+            : base(stream, backend_type)
         {
             Initialize();
         }
@@ -48,9 +47,8 @@ namespace HoloLab.DNN.ObjectDetection
         /// </summary>
         /// <param name="model_asset">model asset</param>
         /// <param name="backend_type">backend type for inference engine</param>
-        /// <param name="apply_quantize">apply float16 quantize</param>
-        public ObjectDetectionModel_YOLOv9(ModelAsset model_asset, BackendType backend_type = BackendType.GPUCompute, bool apply_quantize = true)
-            : base(model_asset, backend_type, apply_quantize)
+        public ObjectDetectionModel_YOLOv9(ModelAsset model_asset, BackendType backend_type = BackendType.GPUCompute)
+            : base(model_asset, backend_type)
         {
             Initialize();
         }
@@ -60,9 +58,6 @@ namespace HoloLab.DNN.ObjectDetection
         /// </summary>
         public new void Dispose()
         {
-            scalars?.Dispose();
-            scalars = null;
-
             base.Dispose();
         }
 
@@ -116,14 +111,57 @@ namespace HoloLab.DNN.ObjectDetection
 
         private void Initialize()
         {
-            SetLayersPerFrame(runtime_model.layers.Count / 5);
-
             input_shape = GetInputShapes().First().Value;
+            output_shapes = GetOutputShapes().Values.ToArray();
             var input_width = input_shape[3];
             var input_height = input_shape[2];
 
             strides = CreateStrides();
             (anchors, scalars) = CreateAnchorsAndScalars(input_width, input_height);
+
+            SetEditedModel(AddPostProcess());
+            SetSliceFrames(5); // TODO : automatic adjust number of layers per frame
+        }
+
+        private Model AddPostProcess()
+        {
+            try
+            {
+                var functional_graph = new FunctionalGraph();
+                var inputs = functional_graph.AddInputs(base.runtime_model);
+                var predicts = Functional.Forward(base.runtime_model, inputs);
+
+                var num_predicts = predicts.Count() / 3;
+                var predicts_cls = new List<FunctionalTensor>(num_predicts);
+                var predicts_box = new List<FunctionalTensor>(num_predicts);
+                for (var i = 0; i < predicts.Count(); i += 3)
+                {
+                    var predict_cls = predicts[i + 0];
+                    var predict_cls_shape = output_shapes[i + 0];
+                    var transpose_cls = predict_cls.Transpose(1, 2).Transpose(2, 3);
+                    var reshape_cls = transpose_cls.Reshape(new int[3] { predict_cls_shape[0], predict_cls_shape[2] * predict_cls_shape[3], predict_cls_shape[1] });
+                    predicts_cls.Add(reshape_cls);
+
+                    var predict_box = predicts[i + 2];
+                    var predict_box_shape = output_shapes[i + 2];
+                    var transpose_box = predict_box.Transpose(1, 2).Transpose(2, 3);
+                    var reshape_box = transpose_box.Reshape(new int[3] { predict_box_shape[0], predict_box_shape[2] * predict_box_shape[3], predict_box_shape[1] });
+                    predicts_box.Add(reshape_box);
+                }
+
+                var classes_tensor = Functional.Concat(predicts_cls.ToArray(), 1);
+
+                var scalers_tensor = Functional.Constant(scalars);
+                var boxes_tensor = Functional.Mul(Functional.Concat(predicts_box.ToArray(), 1), scalers_tensor);
+
+                var edited_model = functional_graph.Compile(classes_tensor, boxes_tensor);
+
+                return edited_model;
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"[error] can not add post process to model for some reason. ({e.Message})");
+            }
         }
 
         private List<int> CreateStrides()
@@ -141,7 +179,7 @@ namespace HoloLab.DNN.ObjectDetection
             return strides;
         }
 
-        private (List<Vector2Int>, TensorFloat) CreateAnchorsAndScalars(int width, int height)
+        private (List<Vector2Int>, Tensor<float>) CreateAnchorsAndScalars(int width, int height)
         {
             var anchors = new List<Vector2Int>();
             var scalars = new List<float>();
@@ -158,32 +196,19 @@ namespace HoloLab.DNN.ObjectDetection
                 scalars.AddRange(scalar);
             }
 
-            return (anchors, new TensorFloat(new TensorShape(1, scalars.Count, 1), scalars.ToArray()));
+            return (anchors, new Tensor<float>(new TensorShape(1, scalars.Count, 1), scalars.ToArray()));
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private List<HoloLab.DNN.ObjectDetection.Object> PostProcess(Dictionary<string, Tensor> output_tensors, float resize_ratio, Vector2 pad, float score_threshold)
         {
-            var predicts = output_tensors.Values.ToArray();
-            var num_predicts = predicts.Count() / 3;
-            var predicts_cls = new List<TensorFloat>(num_predicts);
-            var predicts_box = new List<TensorFloat>(num_predicts);
-            for (var i = 0; i < predicts.Count(); i+=3)
-            {
-                var predict_cls = predicts[i + 0] as TensorFloat;
-                var predict_box = predicts[i + 2] as TensorFloat;
-                predicts_cls.Add(Rearrange(predict_cls));
-                predicts_box.Add(Rearrange(predict_box));
-            }
+            var predict_tensors = output_tensors.Values.ToArray();
 
-            var classes_tensor = Concat(predicts_cls);
-            var boxes_tensor = Mul(Concat(predicts_box), scalars);
+            var classes_tensor = predict_tensors[0].ReadbackAndClone() as Tensor<float>;
+            var boxes_tensor = predict_tensors[1].ReadbackAndClone() as Tensor<float>;
 
-            classes_tensor = classes_tensor.ReadbackAndClone();
-            boxes_tensor = boxes_tensor.ReadbackAndClone();
-
-            var classes = classes_tensor.ToReadOnlySpan();
-            var boxes = boxes_tensor.ToReadOnlySpan();
+            var classes = classes_tensor.AsReadOnlySpan();
+            var boxes = boxes_tensor.AsReadOnlySpan();
 
             var num_objects = classes_tensor.shape[1];
             var num_classes = classes_tensor.shape[2];
@@ -221,57 +246,6 @@ namespace HoloLab.DNN.ObjectDetection
             boxes_tensor.Dispose();
 
             return objects;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private TensorFloat Rearrange(TensorFloat tensor)
-        {
-            var transpose_permutations = new int[4] { 0, 2, 3, 1 };
-            var transpose_tensor = TensorFloat.AllocNoData(tensor.shape.Transpose(transpose_permutations));
-            backend.Transpose(tensor, transpose_tensor, transpose_permutations);
-
-            var reshape_shape = new int[3] { transpose_tensor.shape[0], transpose_tensor.shape[1] * transpose_tensor.shape[2], transpose_tensor.shape[3] };
-            var reshape_tensor = TensorFloat.AllocNoData(new TensorShape(reshape_shape));
-            backend.Reshape(transpose_tensor, reshape_tensor);
-
-            transpose_tensor.Dispose();
-
-            return reshape_tensor;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private TensorFloat Concat(List<TensorFloat> tensors, int axis = 1)
-        {
-            var base_shape = tensors.First().shape;
-            base_shape[axis] = 0;
-            var concat_shape = new TensorShape(base_shape);
-            foreach (var tensor in tensors)
-            {
-                concat_shape = concat_shape.Concat(tensor.shape, axis);
-            }
-            var concat_tensor = TensorFloat.AllocNoData(concat_shape);
-
-            var start = 0;
-            foreach (var tensor in tensors)
-            {
-                backend.SliceSet(tensor, concat_tensor, axis, start, 1);
-                start += tensor.shape[axis];
-            }
-
-            tensors.AllDispose();
-
-            return concat_tensor;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private TensorFloat Mul(TensorFloat tensor, TensorFloat scalars)
-        {
-            var mul_tensor = TensorFloat.AllocNoData(tensor.shape);
-            backend.Mul(tensor, scalars, mul_tensor);
-
-            tensor.Dispose();
-
-            return mul_tensor;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

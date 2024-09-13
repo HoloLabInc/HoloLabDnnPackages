@@ -3,7 +3,7 @@
     "rootNamespace": "HoloLab.DNN.Base",
     "references": [
         "GUID:c98377141161c7746a178fb5cb1af075",
-        "GUID:dac1e7a5151dd4142814f1effc90c01f"
+        "GUID:e0cd26848372d4e5c891c569017e11f1"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

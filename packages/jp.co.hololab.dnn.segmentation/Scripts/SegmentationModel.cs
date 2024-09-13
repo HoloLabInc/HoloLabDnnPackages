@@ -20,9 +20,8 @@ namespace HoloLab.DNN.Segmentation
         /// </summary>
         /// <param name="file_path">model file path</param>
         /// <param name="backend_type">backend type for inference engine</param>
-        /// <param name="apply_quantize">apply float16 quantize</param>
-        public SegmentationModel(string file_path, BackendType backend_type = BackendType.GPUCompute, bool apply_quantize = true)
-            : base(file_path, backend_type, apply_quantize)
+        public SegmentationModel(string file_path, BackendType backend_type = BackendType.GPUCompute)
+            : base(file_path, backend_type)
         {
             Initialize();
         }
@@ -32,9 +31,8 @@ namespace HoloLab.DNN.Segmentation
         /// </summary>
         /// <param name="stream">model stream</param>
         /// <param name="backend_type">backend type for inference engine</param>
-        /// <param name="apply_quantize">apply float16 quantize</param>
-        public SegmentationModel(System.IO.Stream stream, BackendType backend_type = BackendType.GPUCompute, bool apply_quantize = true)
-            : base(stream, backend_type, apply_quantize)
+        public SegmentationModel(System.IO.Stream stream, BackendType backend_type = BackendType.GPUCompute)
+            : base(stream, backend_type)
         {
             Initialize();
         }
@@ -44,9 +42,8 @@ namespace HoloLab.DNN.Segmentation
         /// </summary>
         /// <param name="model_asset">model asset</param>
         /// <param name="backend_type">backend type for inference engine</param>
-        /// <param name="apply_quantize">apply float16 quantize</param>
-        public SegmentationModel(ModelAsset model_asset, BackendType backend_type = BackendType.GPUCompute, bool apply_quantize = true)
-            : base(model_asset, backend_type, apply_quantize)
+        public SegmentationModel(ModelAsset model_asset, BackendType backend_type = BackendType.GPUCompute)
+            : base(model_asset, backend_type)
         {
             Initialize();
         }
@@ -68,22 +65,16 @@ namespace HoloLab.DNN.Segmentation
         {
             var output_tensors = Predict(image);
             var output_name = runtime_model.outputs[0].name;
-            var output_tensor = output_tensors[output_name] as TensorFloat;
+            var output_tensor = output_tensors[output_name] as Tensor<int>;
 
-            var indices_shape = new TensorShape(1, output_tensor.shape[2], output_tensor.shape[3]);
-            var indices = TensorInt.AllocNoData(indices_shape);
-            backend.ArgMax(output_tensor, indices, 1, false);
+            output_tensor = output_tensor.ReadbackAndClone();
 
-            indices = indices.ReadbackAndClone();
+            var indices_texture = PostProcess(output_tensor, image.width, image.height);
 
-            var indices_texture = ToTexture(indices);
-            var resized_texture = Resize(indices_texture, image.width, image.height);
-
-            indices.Dispose();
+            output_tensor.Dispose();
             output_tensors.AllDispose();
-            MonoBehaviour.Destroy(indices_texture);
 
-            return resized_texture;
+            return indices_texture;
         }
 
         /// <summary>
@@ -97,22 +88,16 @@ namespace HoloLab.DNN.Segmentation
             var output_tensors = new Dictionary<string, Tensor>();
             yield return CoroutineHandler.StartStaticCoroutine(Predict(image, (outputs) => output_tensors = outputs));
             var output_name = runtime_model.outputs[0].name;
-            var output_tensor = output_tensors[output_name] as TensorFloat;
+            var output_tensor = output_tensors[output_name] as Tensor<int>;
 
-            var indices_shape = new TensorShape(1, output_tensor.shape[2], output_tensor.shape[3]);
-            var indices = TensorInt.AllocNoData(indices_shape);
-            backend.ArgMax(output_tensor, indices, 1, false);
+            output_tensor = output_tensor.ReadbackAndClone();
 
-            indices = indices.ReadbackAndClone();
+            var indices_texture = PostProcess(output_tensor, image.width, image.height);
 
-            var indices_texture = ToTexture(indices);
-            var resized_texture = Resize(indices_texture, image.width, image.height);
-
-            indices.Dispose();
+            output_tensor.Dispose();
             output_tensors.AllDispose();
-            MonoBehaviour.Destroy(indices_texture);
 
-            return_callback(resized_texture);
+            return_callback(indices_texture);
         }
 
         /// <summary>
@@ -131,27 +116,55 @@ namespace HoloLab.DNN.Segmentation
         {
             SetInputMean(new Vector3(0.485f, 0.456f, 0.406f));
             SetInputStd(new Vector3(0.229f, 0.224f, 0.225f));
-            SetLayersPerFrame(runtime_model.layers.Count / 5); // TODO : automatic adjust number of layers per frame
+            SetEditedModel(AddPostProcess());
+            SetSliceFrames(5); // TODO : automatic adjust number of layers per frame
+        }
+
+        private Model AddPostProcess()
+        {
+            try
+            {
+                var functional_graph = new FunctionalGraph();
+                var inputs = functional_graph.AddInputs(base.runtime_model);
+                var predict = Functional.Forward(base.runtime_model, inputs)[0];
+
+                var indices_tensor = Functional.ArgMax(predict, 1).Squeeze();
+                var fliped_tensor = indices_tensor.FlipUD();
+
+                var edited_model = functional_graph.Compile(fliped_tensor);
+
+                return edited_model;
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"[error] can not add post process to model for some reason. ({e.Message})");
+            }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private Texture2D ToTexture(TensorInt tensor)
+        private Texture2D PostProcess(Tensor<int> tensor, int input_width, int input_height)
         {
-            var width = tensor.shape[2];
-            var height = tensor.shape[1];
+            var indices_texture = ToTexture(tensor);
+            var resized_texture = Resize(indices_texture, input_width, input_height);
+
+            MonoBehaviour.Destroy(indices_texture);
+
+            return resized_texture;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private Texture2D ToTexture(Tensor<int> tensor)
+        {
+            var width = tensor.shape[1];
+            var height = tensor.shape[0];
             var texture = new Texture2D(width, height, TextureFormat.R8, false);
 
-            var indices = tensor.ToReadOnlyArray();
+            var indices = tensor.DownloadToNativeArray();
             var colors = new Color32[indices.Length];
 
-            Parallel.For(0, height, y =>
+            Parallel.For(0, width * height, i =>
             {
-                var inv_y = height - 1 - y;
-                for (var x = 0; x < width; x++)
-                {
-                    var index = (byte)indices[inv_y * width + x];
-                    colors[y * width + x].r = index;
-                }
+                colors[i].r = (byte)indices[i];
             });
 
             texture.SetPixels32(colors);

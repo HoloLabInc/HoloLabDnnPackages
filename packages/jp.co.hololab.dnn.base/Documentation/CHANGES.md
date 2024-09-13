@@ -1,5 +1,12 @@
 # CHANGES
 
+## [1.0.4] - 2024-09-13
+
+- Update Unity Sentis to 2.1 from 1.6.
+- Remove apply_quantize argument from constructor, and add ApplyQuantize() function as replacement.
+- Delete IBackend variable because IBackend API has been deprecated in Unity Sentis 2.0 and later.
+- Add SetEditedModel() function for replace with edited model by Functional API.
+
 ## [1.0.3] - 2024-08-20
 
 - Update Unity Sentis to 1.6 from 1.5.

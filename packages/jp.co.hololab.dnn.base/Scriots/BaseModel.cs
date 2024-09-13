@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 using Unity.Sentis;
-using Unity.Sentis.Quantization;
 
 namespace HoloLab.DNN.Base
 {
@@ -15,9 +14,10 @@ namespace HoloLab.DNN.Base
     public class BaseModel : IDisposable
     {
         protected Model runtime_model = null;
-        protected IWorker worker = null;
-        protected IBackend backend = null;
+        protected Worker worker = null;
         protected IEnumerator schedule = null;
+        protected BackendType backend_type = BackendType.GPUCompute;
+        protected bool is_quantized = false;
         private Material pre_process = null;
         private RenderTexture render_texture = null;
         private bool is_predicting = false;
@@ -28,11 +28,12 @@ namespace HoloLab.DNN.Base
         /// </summary>
         /// <param name="file_path">model file path</param>
         /// <param name="backend_type">backend type for inference engine</param>
-        /// <param name="apply_quantize">apply float16 quantize</param>
-        public BaseModel(string file_path, BackendType backend_type = BackendType.GPUCompute, bool apply_quantize = false)
+        public BaseModel(string file_path, BackendType backend_type = BackendType.GPUCompute)
         {
-            runtime_model = ModelLoader.Load(file_path);
-            Initialize(backend_type, apply_quantize);
+            this.runtime_model = ModelLoader.Load(file_path);
+            this.backend_type = backend_type;
+            InitializeWorker();
+            InitializePreProcess();
         }
 
         /// <summary>
@@ -40,11 +41,12 @@ namespace HoloLab.DNN.Base
         /// </summary>
         /// <param name="stream">mdoel stream</param>
         /// <param name="backend_type">backend type for inference engine</param>
-        /// <param name="apply_quantize">apply float16 quantize</param>
-        public BaseModel(System.IO.Stream stream, BackendType backend_type = BackendType.GPUCompute, bool apply_quantize = false)
+        public BaseModel(System.IO.Stream stream, BackendType backend_type = BackendType.GPUCompute)
         {
-            runtime_model = ModelLoader.Load(stream);
-            Initialize(backend_type, apply_quantize);
+            this.runtime_model = ModelLoader.Load(stream);
+            this.backend_type = backend_type;
+            InitializeWorker();
+            InitializePreProcess();
         }
 
         /// <summary>
@@ -52,11 +54,12 @@ namespace HoloLab.DNN.Base
         /// </summary>
         /// <param name="model_asset">model asset</param>
         /// <param name="backend_type">backend type for inference engine</param>
-        /// <param name="apply_quantize">apply float16 quantize</param>
-        public BaseModel(ModelAsset model_asset, BackendType backend_type = BackendType.GPUCompute, bool apply_quantize = false)
+        public BaseModel(ModelAsset model_asset, BackendType backend_type = BackendType.GPUCompute)
         {
-            runtime_model = ModelLoader.Load(model_asset);
-            Initialize(backend_type, apply_quantize);
+            this.runtime_model = ModelLoader.Load(model_asset);
+            this.backend_type = backend_type;
+            InitializeWorker();
+            InitializePreProcess();
         }
 
         /// <summary>
@@ -67,9 +70,6 @@ namespace HoloLab.DNN.Base
             worker?.Dispose();
             worker = null;
 
-            backend?.Dispose();
-            backend = null;
-
             if (render_texture != null)
             {
                 RenderTexture.ReleaseTemporary(render_texture);
@@ -77,18 +77,24 @@ namespace HoloLab.DNN.Base
             }
         }
 
-        private void Initialize(BackendType backend_type, bool apply_quantize)
+        private void InitializeWorker()
         {
-            if (apply_quantize)
+            worker?.Dispose();
+            worker = new Worker(runtime_model, backend_type);
+            var input_width = runtime_model.inputs[0].shape.Get(3);
+            var input_height = runtime_model.inputs[0].shape.Get(2);
+            if (render_texture == null || render_texture.width != input_width || render_texture.height != input_height)
             {
-                var quantize_type = QuantizationType.Float16;
-                ModelQuantizer.QuantizeWeights(quantize_type, ref runtime_model);
+                if (render_texture != null)
+                {
+                    RenderTexture.ReleaseTemporary(render_texture);
+                }
+                render_texture = RenderTexture.GetTemporary(input_width, input_height, 0, RenderTextureFormat.ARGBHalf);
             }
-            worker = WorkerFactory.CreateWorker(backend_type, runtime_model);
-            backend = WorkerFactory.CreateBackend(backend_type);
-            var input_width = runtime_model.inputs[0].shape[3].value;
-            var input_height = runtime_model.inputs[0].shape[2].value;
-            render_texture = RenderTexture.GetTemporary(input_width, input_height, 0, RenderTextureFormat.ARGBHalf);
+        }
+
+        private void InitializePreProcess()
+        {
             pre_process = new Material(Shader.Find("BaseModel/PreProcess"));
             pre_process.SetVector("_Mean", new Vector4(0.0f, 0.0f, 0.0f));
             pre_process.SetVector("_Std", new Vector4(1.0f, 1.0f, 1.0f));
@@ -120,14 +126,18 @@ namespace HoloLab.DNN.Base
         public Dictionary<string, TensorShape> GetOutputShapes()
         {
             var input_shapes = GetInputShapes();
-            var input_tensors = new Dictionary<string, Tensor>(runtime_model.inputs.Count);
+            var input_tensors = new Dictionary<string, Tensor<float>>(runtime_model.inputs.Count);
             runtime_model.inputs.ForEach(input =>
             {
-                var input_tensor = TensorFloat.AllocZeros(input.shape.ToTensorShape());
+                var input_tensor = new Tensor<float>(input.shape.ToTensorShape());
                 input_tensors[input.name] = input_tensor;
             });
 
-            worker.Execute(input_tensors);
+            foreach (var input_tensor in input_tensors)
+            {
+                worker.SetInput(input_tensor.Key, input_tensor.Value);
+            }
+            worker.Schedule();
 
             var output_shapes = new Dictionary<string, TensorShape>(runtime_model.outputs.Count);
             runtime_model.outputs.ForEach(output =>
@@ -138,16 +148,38 @@ namespace HoloLab.DNN.Base
         }
 
         /// <summary>
+        /// set edited model by funtional api
+        /// </summary>
+        /// <param name="edited_model">edited model</param>
+        public void SetEditedModel(Model edited_model)
+        {
+            this.runtime_model = edited_model;
+            InitializeWorker();
+        }
+
+        /// <summary>
         /// set backend type for inference engine
         /// </summary>
         /// <param name="backend_type">backend type for inference engine</param>
         public void SetBackendType(BackendType backend_type)
         {
-            worker?.Dispose();
-            worker = WorkerFactory.CreateWorker(backend_type, runtime_model);
+            this.backend_type = backend_type;
+            InitializeWorker();
+        }
 
-            backend?.Dispose();
-            backend = WorkerFactory.CreateBackend(backend_type);
+        /// <summary>
+        /// apply float16 quantize
+        /// </summary>
+        public void ApplyQuantize()
+        {
+            if (is_quantized)
+            {
+                return;
+            }
+            var quantize_type = QuantizationType.Float16;
+            ModelQuantizer.QuantizeWeights(quantize_type, ref runtime_model);
+            InitializeWorker();
+            is_quantized = true;
         }
 
         /// <summary>
@@ -219,7 +251,6 @@ namespace HoloLab.DNN.Base
         /// set number of layers per frame to slice inference
         /// </summary>
         /// <param name="num_layers">number of layers per frame (-1 is process all layers per frame)</param>
-        [Obsolete("this method has been renamed. please use ", false)]
         public void SetSliceLayers(int num_layers)
         {
             this.layers_per_frame = num_layers;
@@ -260,7 +291,7 @@ namespace HoloLab.DNN.Base
             var input_shape = GetInputShapes().First().Value;
             var input_tensor = TextureConverter.ToTensor(input_texture, input_shape[3], input_shape[2], input_shape[1]);
 
-            worker.Execute(input_tensor);
+            worker.Schedule(input_tensor);
 
             var output_tensors = new Dictionary<string, Tensor>(runtime_model.outputs.Count);
             runtime_model.outputs.ForEach(output => {
@@ -289,7 +320,7 @@ namespace HoloLab.DNN.Base
 
             if (!is_predicting)
             {
-                schedule = worker.ExecuteLayerByLayer(input_tensor);
+                schedule = worker.ScheduleIterable(input_tensor);
                 is_predicting = true;
             }
 

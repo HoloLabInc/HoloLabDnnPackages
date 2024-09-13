@@ -1,6 +1,6 @@
 {
     "name": "jp.co.hololab.dnn.classification",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "displayName": "Classification",
     "description": "Classification model with Unity Sentis.",
     "keywords": [ "unity", "sentis", "classification" ],
@@ -11,8 +11,8 @@
     },
     "license": "MIT",
     "dependencies": {
-        "com.unity.sentis": "1.6.0-pre.1",
-        "jp.co.hololab.dnn.base": "1.0.3"
+        "com.unity.sentis": "2.1.0",
+        "jp.co.hololab.dnn.base": "1.0.4"
     },
     "samples": [
         {

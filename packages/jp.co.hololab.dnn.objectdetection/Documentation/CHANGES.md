@@ -1,5 +1,12 @@
 # CHANGES
 
+## [1.0.4] - 2024-09-13
+
+- Update Unity Sentis to 2.1 from 1.6.
+- Move some internal post processing to Functional API from IBackend API.
+- Remove apply_quantize argument from constructor. Instead of that, please use ApplyQuantize() function inherited from BaseModel class.
+- Add DrawLabel() function for TextMeshPro.
+
 ## [1.0.3] - 2024-08-20
 
 - Update Unity Sentis to 1.6 from 1.5.
