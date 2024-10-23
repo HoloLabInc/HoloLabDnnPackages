@@ -21,7 +21,7 @@ namespace HoloLab.DNN.ObjectDetection
         private TensorShape[] output_shapes;
 
         /// <summary>
-        /// create object detection model for yolox from sentis file
+        /// create object detection model for yolo v9 from sentis file
         /// </summary>
         /// <param name="file_path">model file path</param>
         /// <param name="backend_type">backend type for inference engine</param>
@@ -32,7 +32,7 @@ namespace HoloLab.DNN.ObjectDetection
         }
 
         /// <summary>
-        /// create object detection model for yolox from stream
+        /// create object detection model for yolo v9 from stream
         /// </summary>
         /// <param name="stream">model stream</param>
         /// <param name="backend_type">backend type for inference engine</param>
@@ -43,7 +43,7 @@ namespace HoloLab.DNN.ObjectDetection
         }
 
         /// <summary>
-        /// create object detection model for yolox from model asset
+        /// create object detection model for yolo v9 from model asset
         /// </summary>
         /// <param name="model_asset">model asset</param>
         /// <param name="backend_type">backend type for inference engine</param>
