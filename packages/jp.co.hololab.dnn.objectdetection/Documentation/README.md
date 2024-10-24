@@ -23,8 +23,8 @@ Please export trained weights to ONNX format.
 * ObjectDetectionModel_YOLOv9 class : [YOLOv9 MIT](https://github.com/WongKinYiu/YOLO) <sup>*1</sup>
 * ObjectDetectionModel_RTDETRv2 class : [RT-DETRv2](https://github.com/lyuwenyu/RT-DETR) <sup>*2</sup>
 
-<sup>*1 Required to overwrite input layer shape to 1x3x640x640 using ONNX Simplifier. (e.g. onnxsim --overwrite-input-shape "1,3,640,640" ./yolov9.onnx ./yolov9.onnx)</sup>
-<sup>*2 Required to overwrite input layer shape to 1x3x640x640 using ONNX Simplifier. (e.g. onnxsim --overwrite-input-shape "images:1,3,640,640" "orig_target_sizes:1,2" ./rtdetrv2.onnx ./rtdetrv2.onnx)</sup>
+<sup>*1 Required to overwrite input layer shape to 1x3x640x640 using ONNX Simplifier. (e.g. onnxsim --overwrite-input-shape "1,3,640,640" ./yolov9.onnx ./yolov9.onnx)</sup>  
+<sup>*2 Required to overwrite input layer shape to 1x3x640x640 using ONNX Simplifier. (e.g. onnxsim --overwrite-input-shape "images:1,3,640,640" "orig_target_sizes:1,2" ./rtdetrv2.onnx ./rtdetrv2.onnx)</sup>  
 
 ## How To Add Package
 
