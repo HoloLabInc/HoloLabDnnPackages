@@ -18,10 +18,10 @@ namespace HoloLab.DNN.Base
         protected IEnumerator schedule = null;
         protected BackendType backend_type = BackendType.GPUCompute;
         protected bool is_quantized = false;
-        private Material pre_process = null;
-        private RenderTexture render_texture = null;
-        private bool is_predicting = false;
-        private int layers_per_frame = 5;
+        protected Material pre_process = null;
+        protected RenderTexture render_texture = null;
+        protected bool is_predicting = false;
+        protected int layers_per_frame = 5;
 
         /// <summary>
         /// create base model from sentis file
@@ -126,10 +126,27 @@ namespace HoloLab.DNN.Base
         public Dictionary<string, TensorShape> GetOutputShapes()
         {
             var input_shapes = GetInputShapes();
-            var input_tensors = new Dictionary<string, Tensor<float>>(runtime_model.inputs.Count);
+            var input_tensors = new Dictionary<string, Tensor>(runtime_model.inputs.Count);
             runtime_model.inputs.ForEach(input =>
             {
-                var input_tensor = new Tensor<float>(input.shape.ToTensorShape());
+                Tensor input_tensor;
+                switch (input.dataType)
+                {
+                    case DataType.Float:
+                        input_tensor = new Tensor<float>(input.shape.ToTensorShape());
+                        break;
+                    case DataType.Int:
+                        input_tensor = new Tensor<int>(input.shape.ToTensorShape());
+                        break;
+                    case DataType.Short:
+                        input_tensor = new Tensor<short>(input.shape.ToTensorShape());
+                        break;
+                    case DataType.Byte:
+                        input_tensor = new Tensor<byte>(input.shape.ToTensorShape());
+                        break;
+                    default:
+                        throw new NotSupportedException($"[error] this data type is not supported.");
+                }
                 input_tensors[input.name] = input_tensor;
             });
 
@@ -348,7 +365,7 @@ namespace HoloLab.DNN.Base
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private Texture PreProcess(Texture2D image)
+        public Texture PreProcess(Texture2D image)
         {
             RenderTexture.active = render_texture;
             Graphics.Blit(image, render_texture, pre_process);
