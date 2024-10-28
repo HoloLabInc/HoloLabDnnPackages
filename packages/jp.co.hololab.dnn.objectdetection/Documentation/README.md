@@ -2,7 +2,7 @@
 
 ## About
 
-This package is providing object detection using YOLOX model, YOLOv9 MIT model, and RT-DETRv2.  
+This package is providing object detection using YOLOX model, YOLOv9 MIT model, and DETR based models.  
 This object detection is implemented based on Sentis.  
 
 ## Environment
@@ -21,10 +21,11 @@ Please export trained weights to ONNX format.
 
 * ObjectDetectionModel_YOLOX class : [YOLOX](https://github.com/Megvii-BaseDetection/YOLOX)
 * ObjectDetectionModel_YOLOv9 class : [YOLOv9 MIT](https://github.com/WongKinYiu/YOLO) <sup>*1</sup>
-* ObjectDetectionModel_RTDETRv2 class : [RT-DETRv2](https://github.com/lyuwenyu/RT-DETR) <sup>*2</sup>
+* ObjectDetectionModel_DETR class : [RT-DETRv2](https://github.com/lyuwenyu/RT-DETR), [D-FINE](https://github.com/Peterande/D-FINE), and other DETR based models <sup>*2 *3</sup>
 
 <sup>*1 Required to overwrite input layer shape to 1x3x640x640 using ONNX Simplifier. (e.g. onnxsim --overwrite-input-shape "1,3,640,640" ./yolov9.onnx ./yolov9.onnx)</sup>  
-<sup>*2 Required to overwrite input layer shape to 1x3x640x640 using ONNX Simplifier. (e.g. onnxsim --overwrite-input-shape "images:1,3,640,640" "orig_target_sizes:1,2" ./rtdetrv2.onnx ./rtdetrv2.onnx)</sup>  
+<sup>*2 Required to overwrite input layer shape to 1x3x640x640 using ONNX Simplifier. (e.g. onnxsim --overwrite-input-shape "images:1,3,640,640" "orig_target_sizes:1,2" ./detr.onnx ./detr.onnx)</sup>  
+<sup>*3 Support DETR based models with "images" and "orig_target_sizes" at input layers, and "labels", "boxes", "scores" at output layers.</sup>  
 
 ## How To Add Package
 

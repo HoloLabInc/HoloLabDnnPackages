@@ -10,42 +10,42 @@ using HoloLab.DNN.Base;
 namespace HoloLab.DNN.ObjectDetection
 {
     /// <summary>
-    /// object detection model class for rt-detr v2
+    /// object detection model class for detr
     /// </summary>
-    public class ObjectDetectionModel_RTDETRv2 : BaseModel, IDisposable
+    public class ObjectDetectionModel_DETR : BaseModel, IDisposable
     {
         private RenderTexture render_texture = null;
         private TensorShape input_shape;
         private TensorShape[] output_shapes;
 
         /// <summary>
-        /// create object detection model for rt-detr v2 from sentis file
+        /// create object detection model for detr from sentis file
         /// </summary>
         /// <param name="file_path">model file path</param>
         /// <param name="backend_type">backend type for inference engine</param>
-        public ObjectDetectionModel_RTDETRv2(string file_path, BackendType backend_type = BackendType.GPUCompute)
+        public ObjectDetectionModel_DETR(string file_path, BackendType backend_type = BackendType.GPUCompute)
             : base(file_path, backend_type)
         {
             Initialize();
         }
 
         /// <summary>
-        /// create object detection model for rt-detr v2 from stream
+        /// create object detection model for detr from stream
         /// </summary>
         /// <param name="stream">model stream</param>
         /// <param name="backend_type">backend type for inference engine</param>
-        public ObjectDetectionModel_RTDETRv2(System.IO.Stream stream, BackendType backend_type = BackendType.GPUCompute)
+        public ObjectDetectionModel_DETR(System.IO.Stream stream, BackendType backend_type = BackendType.GPUCompute)
             : base(stream, backend_type)
         {
             Initialize();
         }
 
         /// <summary>
-        /// create object detection model for rt-detr v2 from model asset
+        /// create object detection model for detr from model asset
         /// </summary>
         /// <param name="model_asset">model asset</param>
         /// <param name="backend_type">backend type for inference engine</param>
-        public ObjectDetectionModel_RTDETRv2(ModelAsset model_asset, BackendType backend_type = BackendType.GPUCompute)
+        public ObjectDetectionModel_DETR(ModelAsset model_asset, BackendType backend_type = BackendType.GPUCompute)
             : base(model_asset, backend_type)
         {
             Initialize();
