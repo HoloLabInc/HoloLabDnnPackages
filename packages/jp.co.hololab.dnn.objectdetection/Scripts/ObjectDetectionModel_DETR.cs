@@ -212,8 +212,8 @@ namespace HoloLab.DNN.ObjectDetection
             var scores = scores_tensor.AsReadOnlyNativeArray();
 
             var objects = new List<HoloLab.DNN.ObjectDetection.Object>();
-            var max_objects = labels.Length;
-            for (var i = 0; i < max_objects; i++)
+            var num_detects = labels.Length;
+            for (var i = 0; i < num_detects; i++)
             {
                 var confidence = scores[i];
                 if (confidence < score_threshold)

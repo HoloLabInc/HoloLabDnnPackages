@@ -25,7 +25,7 @@ Please export trained weights to ONNX format.
 
 <sup>*1 Required to overwrite input layer shape to 1x3x640x640 using ONNX Simplifier. (e.g. onnxsim --overwrite-input-shape "1,3,640,640" ./yolov9.onnx ./yolov9.onnx)</sup>  
 <sup>*2 Required to overwrite input layer shape to 1x3x640x640 using ONNX Simplifier. (e.g. onnxsim --overwrite-input-shape "images:1,3,640,640" "orig_target_sizes:1,2" ./detr.onnx ./detr.onnx)</sup>  
-<sup>*3 Support DETR based models with "images" and "orig_target_sizes" at input layers, and "labels", "boxes", "scores" at output layers.</sup>  
+<sup>*3 Supported DETR based models with "images"(1x3xHxW) , "orig_target_sizes"(1x2) at input layers, and "labels"(1xNUM_DETECT), "boxes"(1xNUM_DETECTx4), "scores"(1xNUM_DETECT) at output layers.</sup>  
 
 ## How To Add Package
 
