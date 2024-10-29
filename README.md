@@ -3,7 +3,7 @@
 ## About
 
 The HoloLab DNN Packages providing image recognition library using deep learning running on the Unity.  
-This packages is implemented based on Unity Sentis.  
+This packages is implemented based on Unity Sentis, and can be deployed to all platforms supported by Unity.  
 
 ## Packages
 
