@@ -14,7 +14,7 @@ namespace HoloLab.DNN.ObjectDetection
     /// </summary>
     public class ObjectDetectionModel_DETR : BaseModel, IDisposable
     {
-        private RenderTexture render_texture = null;
+        private new RenderTexture render_texture = null;
         private TensorShape input_shape;
         private TensorShape[] output_shapes;
 
