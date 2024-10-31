@@ -22,7 +22,7 @@ namespace HoloLab.DNN.ObjectDetection
         /// <param name="score_threshold">confidence score threshold [0.0f-1.0f]</param>
         /// <param name="iou_threshold">iou threshold [0.0f-1.0f]</param>
         /// <returns>output object list</returns>
-        public static List<HoloLab.DNN.ObjectDetection.Object> NMS(List<HoloLab.DNN.ObjectDetection.Object> objects, float score_threshold, float iou_threshold)
+        public static List<HoloLab.DNN.ObjectDetection.BoundingBox> NMS(List<HoloLab.DNN.ObjectDetection.BoundingBox> objects, float score_threshold, float iou_threshold)
         {
             var ordered_objects = objects.Where(o => o.score > score_threshold)
                                          .OrderByDescending(o => o.score)
@@ -43,7 +43,7 @@ namespace HoloLab.DNN.ObjectDetection
                 }
             }
 
-            var suppressed_objects = new List<HoloLab.DNN.ObjectDetection.Object>();
+            var suppressed_objects = new List<HoloLab.DNN.ObjectDetection.BoundingBox>();
             for (int i = 0; i < ordered_objects.Count; i++)
             {
                 if (apply_remove[i])

@@ -67,7 +67,7 @@ namespace HoloLab.DNN.ObjectDetection
         /// <param name="score_threshold">confidence score threshold</param>
         /// <param name="iou_threshold">iou threshold</param>
         /// <returns>detected object list</returns>
-        public List<HoloLab.DNN.ObjectDetection.Object> Detect(Texture2D image, float score_threshold = 0.5f, float iou_threshold = 0.4f)
+        public List<HoloLab.DNN.ObjectDetection.BoundingBox> Detect(Texture2D image, float score_threshold = 0.5f, float iou_threshold = 0.4f)
         {
             var input_texture = ResizeSquare(image);
             var resize_ratio = GetResizeRatio(image);
@@ -93,7 +93,7 @@ namespace HoloLab.DNN.ObjectDetection
         /// <param name="iou_threshold">iou threshold</param>
         /// <param name="return_callback">return callback</param>
         /// <returns>callback function to returns detected object list</returns>
-        public IEnumerator Detect(Texture2D image, float score_threshold, float iou_threshold, Action<List<HoloLab.DNN.ObjectDetection.Object>> return_callback)
+        public IEnumerator Detect(Texture2D image, float score_threshold, float iou_threshold, Action<List<HoloLab.DNN.ObjectDetection.BoundingBox>> return_callback)
         {
             var input_texture = ResizeSquare(image);
             var resize_ratio = GetResizeRatio(image);
@@ -167,12 +167,12 @@ namespace HoloLab.DNN.ObjectDetection
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private List<HoloLab.DNN.ObjectDetection.Object> PostProcess(Tensor<float> output_tensor, float resize_ratio, float score_threshold = 0.0f)
+        private List<HoloLab.DNN.ObjectDetection.BoundingBox> PostProcess(Tensor<float> output_tensor, float resize_ratio, float score_threshold = 0.0f)
         {
             output_tensor = output_tensor.ReadbackAndClone();
             var output_span = output_tensor.AsReadOnlySpan();
 
-            var objects = new List<HoloLab.DNN.ObjectDetection.Object>();
+            var objects = new List<HoloLab.DNN.ObjectDetection.BoundingBox>();
             var tensor_width = output_tensor.shape[2];
             var tensor_channels = output_tensor.shape[1];
             for (int c = 0; c < tensor_channels; c++)
@@ -195,7 +195,7 @@ namespace HoloLab.DNN.ObjectDetection
                 var height = (float)(Math.Exp(span[3]) * expanded_stride) / resize_ratio;
                 var rect = new Rect(center_x - (width * 0.5f), center_y - (height * 0.5f), width, height);
 
-                objects.Add(new HoloLab.DNN.ObjectDetection.Object(rect, class_id, score));
+                objects.Add(new HoloLab.DNN.ObjectDetection.BoundingBox(rect, class_id, score));
             }
 
             output_tensor.Dispose();

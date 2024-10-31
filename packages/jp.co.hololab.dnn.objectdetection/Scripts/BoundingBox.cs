@@ -4,16 +4,16 @@ using UnityEngine;
 namespace HoloLab.DNN.ObjectDetection
 {
     /// <summary>
-    /// object struct
+    /// bounding box struct
     /// </summary>
     [Serializable]
-    public struct Object
+    public struct BoundingBox
     {
         /// <value>
-        /// baunding box
+        /// rectangle
         /// </value>
         /// <remarks>
-        /// rect pixel (x, y) is upper-left corner of bounding boxÅArect size (widht, height) is width and height of bounding box.
+        /// rect.x and rect.y is upper-left corner of bounding box, rect.widht and rect.height is width and height of bounding box.
         /// </remarks>
         public Rect rect { get; set; }
 
@@ -33,7 +33,7 @@ namespace HoloLab.DNN.ObjectDetection
         /// </remarks>
         public float score { get; set; }
 
-        public Object(Rect rect, int class_id, float score)
+        public BoundingBox(Rect rect, int class_id, float score)
         {
             this.rect = rect;
             this.class_id = class_id;

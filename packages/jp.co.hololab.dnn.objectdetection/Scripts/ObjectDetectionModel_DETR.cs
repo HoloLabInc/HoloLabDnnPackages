@@ -73,7 +73,7 @@ namespace HoloLab.DNN.ObjectDetection
         /// <param name="iou_threshold">iou threshold (not used in this class)</param>
         /// <returns>detected object list</returns>
         /// <remarks>iou_threshold arguments for compatibility with other object detection model apis. iou_threshold arguments ignored in this class.</remarks>
-        public List<HoloLab.DNN.ObjectDetection.Object> Detect(Texture2D image, float score_threshold = 0.5f, float iou_threshold = 0.0f)
+        public List<HoloLab.DNN.ObjectDetection.BoundingBox> Detect(Texture2D image, float score_threshold = 0.5f, float iou_threshold = 0.0f)
         {
             var output_tensors = Predict(image);
 
@@ -92,7 +92,7 @@ namespace HoloLab.DNN.ObjectDetection
         /// <param name="return_callback">return callback</param>
         /// <returns>detected object list</returns>
         /// <remarks>iou_threshold arguments for compatibility with other object detection model apis. iou_threshold arguments ignored in this class.</remarks>
-        public IEnumerator Detect(Texture2D image, float score_threshold, float iou_threshold, Action<List<HoloLab.DNN.ObjectDetection.Object>> return_callback)
+        public IEnumerator Detect(Texture2D image, float score_threshold, float iou_threshold, Action<List<HoloLab.DNN.ObjectDetection.BoundingBox>> return_callback)
         {
             var output_tensors = new Dictionary<string, Tensor>();
             yield return CoroutineHandler.StartStaticCoroutine(Predict(image, (outputs) => output_tensors = outputs));
@@ -201,7 +201,7 @@ namespace HoloLab.DNN.ObjectDetection
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private List<HoloLab.DNN.ObjectDetection.Object> PostProcess(Dictionary<string, Tensor> output_tensors, float score_threshold)
+        private List<HoloLab.DNN.ObjectDetection.BoundingBox> PostProcess(Dictionary<string, Tensor> output_tensors, float score_threshold)
         {
             var labels_tensor = output_tensors["labels"].ReadbackAndClone() as Tensor<int>;
             var boxes_tensor = output_tensors["boxes"].ReadbackAndClone() as Tensor<float>;
@@ -211,7 +211,7 @@ namespace HoloLab.DNN.ObjectDetection
             var boxes = boxes_tensor.AsReadOnlyNativeArray();
             var scores = scores_tensor.AsReadOnlyNativeArray();
 
-            var objects = new List<HoloLab.DNN.ObjectDetection.Object>();
+            var objects = new List<HoloLab.DNN.ObjectDetection.BoundingBox>();
             var num_detects = labels.Length;
             for (var i = 0; i < num_detects; i++)
             {
@@ -230,7 +230,7 @@ namespace HoloLab.DNN.ObjectDetection
                 var y2 = boxes[index + 3];
                 var rect = new Rect(x1, y1, x2 - x1, y2 - y1);
 
-                objects.Add(new HoloLab.DNN.ObjectDetection.Object(rect, class_id, confidence));
+                objects.Add(new HoloLab.DNN.ObjectDetection.BoundingBox(rect, class_id, confidence));
             }
 
             labels_tensor.Dispose();
