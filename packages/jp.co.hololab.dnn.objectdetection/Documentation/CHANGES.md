@@ -1,5 +1,10 @@
 # CHANGES
 
+## [X.X.X] - XXXX-XX-XX
+
+- Add object detection using DETR based models with "images"(1x3xHxW) , "orig_target_sizes"(1x2) at input layers, and "labels"(1xNUM_DETECT), "boxes"(1xNUM_DETECTx4), "scores"(1xNUM_DETECT) at output layers. (e.g. RT-DETR, D-FINE)
+- Rename structure for detection results to BoundingBox from Object to avoid conflicts with System.Object and Unity.Object. This breaking changes will be little impact on user code, because generally used type inference.
+
 ## [1.0.4] - 2024-09-13
 
 - Update Unity Sentis to 2.1 from 1.6.
