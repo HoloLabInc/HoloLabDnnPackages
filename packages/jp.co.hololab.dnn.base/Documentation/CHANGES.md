@@ -1,7 +1,8 @@
 # CHANGES
 
-## [X.X.X] - XXXX-XX-XX
+## [1.0.5] - 2024-11-15
 
+- Update Unity Sentis to 2.1.1 from 2.1.0.
 - Fix GetOutputShapes() to support models with Int, Short, and Byte as data type of input layers.
 - Change access modifiers for some variables and functions for more extensibility and flexibility.
 

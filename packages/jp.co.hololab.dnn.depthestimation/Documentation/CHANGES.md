@@ -1,6 +1,8 @@
 # CHANGES
 
-## [X.X.X] - XXXX-XX-XX
+## [1.0.5] - 2024-11-15
+
+- Update Unity Sentis to 2.1.1 from 2.1.0.
 
 ## [1.0.4] - 2024-09-13
 
