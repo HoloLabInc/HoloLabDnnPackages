@@ -1,5 +1,9 @@
 # CHANGES
 
+## [1.0.6] - 2025-02-05
+
+- Update Unity Sentis to 2.1.2 from 2.1.1.
+
 ## [1.0.5] - 2024-11-15
 
 - Update Unity Sentis to 2.1.1 from 2.1.0.
